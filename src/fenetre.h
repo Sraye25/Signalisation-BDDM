@@ -2,6 +2,9 @@
 #define FENETRE_H
 
 #include <QMainWindow>
+#include <QImage>
+#include <QString>
+#include <QFileDialog>
 
 namespace Ui
 {
@@ -15,8 +18,14 @@ class Fenetre : public QMainWindow
         explicit Fenetre(QWidget *parent = 0);
         ~Fenetre();
 
+    public slots:
+        //Charger une scéne
+        void chargerScene();
+
     private:
         Ui::Fenetre *ui;
+
+        QImage m_scene;
 };
 
 #endif // FENETRE_H
