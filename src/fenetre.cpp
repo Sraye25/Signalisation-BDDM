@@ -27,5 +27,5 @@ void Fenetre::chargerScene()
     m_scene.load(fichier);
 
     //Afficher l'image dans un QLabel
-    ui->label->setPixmap(QPixmap::fromImage(m_scene));
+    ui->label_scene->setPixmap(QPixmap::fromImage(m_scene.scaled(ui->label_scene->size(),Qt::KeepAspectRatio)));
 }

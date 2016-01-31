@@ -26,30 +26,58 @@
    <string>Fenetre</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="label">
+   <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>0</y>
       <width>540</width>
-      <height>720</height>
+      <height>675</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
       <width>540</width>
-      <height>720</height>
+      <height>675</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
       <width>540</width>
-      <height>720</height>
+      <height>675</height>
      </size>
     </property>
-    <property name="text">
-     <string>TextLabel</string>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
     </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label_scene">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>5</y>
+       <width>530</width>
+       <height>650</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>530</width>
+       <height>650</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>530</width>
+       <height>650</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -70,14 +98,6 @@
     <addaction name="actionQuitter"/>
    </widget>
    <addaction name="menuFichier"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOuvrir_une_sc_ne">
