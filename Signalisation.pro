@@ -1,19 +1,14 @@
-#-------------------------------------------------
-# Project created by QtCreator 2016-01-28T11:51:26
-#-------------------------------------------------
-
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Signalisation
+TARGET = Signalisation-BDDM-master
 TEMPLATE = app
 
-SOURCES += \
-    src/fenetre.cpp \
-    src/main.cpp
 
-HEADERS  += \
-    src/fenetre.h
+SOURCES += src/main.cpp\
+        src/mainwindow.cpp
 
-FORMS    += fenetre.ui
+HEADERS  += src/mainwindow.h
+
+FORMS    += mainwindow.ui
