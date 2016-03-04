@@ -89,10 +89,8 @@ int HoughCircleDetector::i(){
 
 
 /****************************************************************************
-**
 ** Accumulates a circle on the specified image at the specified position with
 ** the specified radius, using the midpoint circle drawing algorithm
-**
 ****************************************************************************/
 void HoughCircleDetector::accum_circle(Image &image, const QPoint &position, unsigned int radius)
 {
@@ -132,9 +130,7 @@ void HoughCircleDetector::accum_circle(Image &image, const QPoint &position, uns
 }
 
 /****************************************************************************
-**
 ** Accumulates at the specified position
-**
 ****************************************************************************/
 void HoughCircleDetector::accum_pixel(Image &image, const QPoint &position)
 {
@@ -149,12 +145,8 @@ void HoughCircleDetector::accum_pixel(Image &image, const QPoint &position)
 }
 
 /****************************************************************************
-**
 ** Draws a circle on the specified image at the specified position with
 ** the specified radius, using the midpoint circle drawing algorithm
-**
-** Adapted from: http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-**
 ****************************************************************************/
 void HoughCircleDetector::draw_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color)
 {
@@ -194,9 +186,7 @@ void HoughCircleDetector::draw_circle(QImage &image, const QPoint &position, uns
 }
 
 /****************************************************************************
-**
 ** Draws at the specified position
-**
 ****************************************************************************/
 void HoughCircleDetector::draw_pixel(QImage &image, const QPoint &position, const QColor &color)
 {
@@ -211,9 +201,7 @@ void HoughCircleDetector::draw_pixel(QImage &image, const QPoint &position, cons
 }
 
 /****************************************************************************
-**
 ** Detects edges in the specified QImage
-**
 ****************************************************************************/
 QImage HoughCircleDetector::edges(const QImage &source)
 {

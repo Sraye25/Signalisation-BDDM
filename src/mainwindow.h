@@ -4,28 +4,37 @@
 #include <QMainWindow>
 #include <QtWidgets>
 
+///RGB : value 0 to 255
+typedef struct {
+    double r;
+    double g;
+    double b;
+} rgb;
 
-namespace Ui {
-class MainWindow;
-}
+///HSV
+typedef struct {
+    double h;       // angle in degrees
+    double s;       // Percent
+    double v;       // Percent
+} hsv;
+
+namespace Ui {class MainWindow;}
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    public:
+        explicit MainWindow(QWidget *parent = 0);
+        ~MainWindow();
 
-private slots:
-    void on_pushButton_pressed();
+    private slots:
+        void on_pushButton_pressed();
 
-    void on_pushButton_2_pressed();
+        void on_pushButton_2_pressed();
 
-    void on_pushButton_3_pressed();
-
-private:
-    Ui::MainWindow *ui;
+    private:
+        Ui::MainWindow *ui;
 
 };
 

@@ -3,91 +3,67 @@
 #include "ui_mainwindow.h"
 #include <iostream>
 
-// HSV RGB //
+static hsv rgb2hsv(rgb in);
+static rgb hsv2rgb(hsv in);
 
-typedef struct {
-    double r;       // percent
-    double g;       // percent
-    double b;       // percent
-} rgb;
-
-typedef struct {
-    double h;       // angle in degrees
-    double s;       // percent
-    double v;       // percent
-} hsv;
-
-static hsv   rgb2hsv(rgb in);
-static rgb   hsv2rgb(hsv in);
-
-// HSV RGB //
-
-
-
+/******************************************************************************
+ ** Draw a pixel at a given position (x,y) with a given color
+******************************************************************************/
 void draw_pixel(QImage &image, const QPoint &position, const QColor &color)
 {
-  /* bounds checking */
-  if(position.x() < 0 || position.x() >= image.width() ||
-     position.y() < 0 || position.y() >= image.height())
-  {
-    return;
-  }
+    /* bounds checking */
+    if(position.x() < 0 || position.x() >= image.width() || position.y() < 0 || position.y() >= image.height())
+    {
+        return;
+    }
 
-  image.setPixel(position, color.rgb());
+    image.setPixel(position, color.rgb());
 }
 
+/*****************************************************************************
+ ** Draw inside a circle with a given picture, a given color, a given radius and a given position
+ ******************************************************************************/
 void draw_inside_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color)
 {
+    for ( int r = image.height()/2; r < image.height(); r++ )
+    {
+        int f = 1 - radius;
+        int ddF_x = 1;
+        int ddF_y = -2 * radius;
+        int x = 0;
+        int y = r;
 
-for ( int r = image.height()/2; r < image.height(); r++ ) {
-  int f = 1 - radius;
-  int ddF_x = 1;
-  int ddF_y = -2 * radius;
-  int x = 0;
-  int y = r;
+        draw_pixel(image, QPoint(position.x(), position.y() + radius), color);
+        draw_pixel(image, QPoint(position.x(), position.y() - radius), color);
+        draw_pixel(image, QPoint(position.x() + radius, position.y()), color);
+        draw_pixel(image, QPoint(position.x() - radius, position.y()), color);
 
-  draw_pixel(image, QPoint(position.x(), position.y() + radius), color);
-  draw_pixel(image, QPoint(position.x(), position.y() - radius), color);
-  draw_pixel(image, QPoint(position.x() + radius, position.y()), color);
-  draw_pixel(image, QPoint(position.x() - radius, position.y()), color);
-
-
-
-
-      while(x < y)
-      {
-        if(f >= 0)
+        while(x < y)
         {
-          y--;
-          ddF_y += 2;
-          f += ddF_y;
+            if(f >= 0)
+            {
+                y--;
+                ddF_y += 2;
+                f += ddF_y;
+            }
+
+            x++;
+            ddF_x += 2;
+            f += ddF_x;
+
+            draw_pixel(image, QPoint(position.x() + x, position.y() + y), color);
+            draw_pixel(image, QPoint(position.x() - x, position.y() + y), color);
+            draw_pixel(image, QPoint(position.x() + x, position.y() - y), color);
+            draw_pixel(image, QPoint(position.x() - x, position.y() - y), color);
+            draw_pixel(image, QPoint(position.x() + y, position.y() + x), color);
+            draw_pixel(image, QPoint(position.x() - y, position.y() + x), color);
+            draw_pixel(image, QPoint(position.x() + y, position.y() - x), color);
+            draw_pixel(image, QPoint(position.x() - y, position.y() - x), color);
         }
-
-        x++;
-        ddF_x += 2;
-        f += ddF_x;
-
-        draw_pixel(image, QPoint(position.x() + x, position.y() + y), color);
-        draw_pixel(image, QPoint(position.x() - x, position.y() + y), color);
-        draw_pixel(image, QPoint(position.x() + x, position.y() - y), color);
-        draw_pixel(image, QPoint(position.x() - x, position.y() - y), color);
-        draw_pixel(image, QPoint(position.x() + y, position.y() + x), color);
-        draw_pixel(image, QPoint(position.x() - y, position.y() + x), color);
-        draw_pixel(image, QPoint(position.x() + y, position.y() - x), color);
-        draw_pixel(image, QPoint(position.x() - y, position.y() - x), color);
-      }
-
-  }
-
+    }
 }
 
-
-
-
-
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 }
@@ -97,6 +73,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/*****************************************************************************
+ ** On pressed button : load Image
+ ****************************************************************************/
 void MainWindow::on_pushButton_pressed()
 {
     QString fname = QFileDialog::getOpenFileName(this, "Open", qApp->applicationDirPath(), "Images (*.jpg *.bmp *.tif *.png)");
@@ -108,7 +87,10 @@ void MainWindow::on_pushButton_pressed()
     ui->label->setScaledContents(true);
 }
 
-/* Convert image into HSV space to egalize hitograms of V-value to increase contrast to have a better recognition */
+/*****************************************************************************
+ ** Convert image into HSV space to egalize hitograms of V-value to increase contrast to have a better recognition
+ ** On pressed :
+ ******************************************************************************/
 void MainWindow::on_pushButton_2_pressed()
 {
     QImage image = ui->label->pixmap()->toImage();
@@ -230,8 +212,6 @@ void MainWindow::on_pushButton_2_pressed()
         }
     }
 
-
-
     // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;
 
@@ -244,10 +224,6 @@ void MainWindow::on_pushButton_2_pressed()
 
     ui->label_2->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
     ui->label_2->setScaledContents(true);
-
-
-
-
 
     int xyi[3];
     xyi[0]=hcd.x();
@@ -273,62 +249,11 @@ void MainWindow::on_pushButton_2_pressed()
 
     ui->label_3->setPixmap(QPixmap::fromImage(BlueRoadSigns));
     ui->label_3->setScaledContents(true);
-
-
 }
 
-
-
-void MainWindow::on_pushButton_3_pressed()
-{
-    QImage image = ui->label->pixmap()->toImage();
-    if(image.isNull())
-        return;
-
-
-    QImage BlueRoadSigns = ui->label->pixmap()->toImage();
-
-    for ( int row = 0; row < BlueRoadSigns.height(); row++ )
-        for ( int col = 0; col < BlueRoadSigns.width(); col++ )
-        {
-            QColor clrCurrent( BlueRoadSigns.pixel( col, row ) );
-
-            int red = clrCurrent.red();
-            int green = clrCurrent.green();
-            int blue = clrCurrent.blue();
-
-            if (red <60 && green<60 && blue>60) {
-                BlueRoadSigns.setPixel(col, row, qRgb(255,255,255));
-            }
-            else BlueRoadSigns.setPixel(col, row, qRgb(0,0,0));
-        }
-
-    ui->label_3->setPixmap(QPixmap::fromImage(BlueRoadSigns));
-    ui->label_3->setScaledContents(true);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// HSV RGB //
-
-
-
+/******************************************************************************
+ ** RGV to HSV
+ ******************************************************************************/
 hsv rgb2hsv(rgb in)
 {
     hsv         out;
@@ -373,7 +298,9 @@ hsv rgb2hsv(rgb in)
     return out;
 }
 
-
+/******************************************************************************
+ ** HSV to RGB
+ ******************************************************************************/
 rgb hsv2rgb(hsv in)
 {
     double      hh, p, q, t, ff;
@@ -431,7 +358,3 @@ rgb hsv2rgb(hsv in)
     }
     return out;
 }
-
-
-
-
