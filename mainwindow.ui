@@ -17,9 +17,9 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>84</x>
       <y>280</y>
-      <width>75</width>
+      <width>91</width>
       <height>23</height>
      </rect>
     </property>
@@ -30,9 +30,9 @@
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>280</y>
-      <width>131</width>
+      <x>450</x>
+      <y>560</y>
+      <width>171</width>
       <height>23</height>
      </rect>
     </property>
@@ -58,8 +58,8 @@
      <rect>
       <x>330</x>
       <y>30</y>
-      <width>271</width>
-      <height>191</height>
+      <width>591</width>
+      <height>511</height>
      </rect>
     </property>
     <property name="text">
@@ -69,27 +69,14 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>30</y>
-      <width>341</width>
-      <height>191</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Road Signs Blue</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_3">
-    <property name="geometry">
-     <rect>
-      <x>664</x>
-      <y>280</y>
+      <x>960</x>
+      <y>40</y>
       <width>131</width>
-      <height>23</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="text">
-     <string>Extract Blue Road Signs</string>
+     <string>Road Sign zoom</string>
     </property>
    </widget>
   </widget>
