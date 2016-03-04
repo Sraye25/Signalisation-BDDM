@@ -7,6 +7,12 @@
 typedef QVector<unsigned int> IntArray;
 typedef QVector<IntArray>     Image;
 
+typedef struct {
+    double x;
+    double y;
+    double radius;
+} xyr;
+
 class HoughCircleDetector
 {
     public:
@@ -15,9 +21,8 @@ class HoughCircleDetector
         ~HoughCircleDetector() {}
 
         QImage detect(const QImage &source, unsigned int min_r, unsigned int max_r);
-        int x();
-        int y();
-        int i();
+
+        QVector<xyr> getListXyi();
 
     private:
 
@@ -28,6 +33,8 @@ class HoughCircleDetector
         void draw_pixel(QImage &image, const QPoint &position, const QColor &color);
 
         QImage edges(const QImage &source);
+
+        QVector<xyr> list_xyi;
 };
 
 

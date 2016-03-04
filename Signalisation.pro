@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -7,7 +7,7 @@ TEMPLATE = app
 
 
 SOURCES += src/main.cpp\
-        src/mainwindow.cpp \
+    src/mainwindow.cpp \
     src/cercledetection.cpp
 
 HEADERS  += src/mainwindow.h \

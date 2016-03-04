@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QtWidgets>
 
+namespace Ui {class MainWindow;}
+
 ///RGB : value 0 to 255
 typedef struct {
     double r;
@@ -17,8 +19,6 @@ typedef struct {
     double s;       // Percent
     double v;       // Percent
 } hsv;
-
-namespace Ui {class MainWindow;}
 
 class MainWindow : public QMainWindow
 {

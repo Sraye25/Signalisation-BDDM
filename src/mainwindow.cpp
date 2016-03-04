@@ -225,30 +225,34 @@ void MainWindow::on_pushButton_2_pressed()
     ui->label_2->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
     ui->label_2->setScaledContents(true);
 
-    int xyi[3];
-    xyi[0]=hcd.x();
-    xyi[1]=hcd.y();
-    xyi[2]=hcd.i();
+    QVector<xyr> list_xyi = hcd.getListXyi();
+    QVector<QLabel*> list_image;
 
-    QImage BlueRoadSigns = QImage(2*xyi[2], 2*xyi[2], QImage::Format_RGB32);
+    for(int i=0; i< list_xyi.size(); i++)
+    {
+        QImage BlueRoadSigns = QImage(2*(list_xyi[i].radius), 2*(list_xyi[i].radius), QImage::Format_RGB32);
+        list_image.push_back(new QLabel());
 
-    for ( int row = 0; row < 2*xyi[2]; row++ )
-        for ( int col = 0; col < 2*xyi[2]; col++ )
-        {
-            QColor clrCurrent( image.pixel( col+xyi[0]-xyi[2], row+xyi[1]-xyi[2] ) );
+        for ( int row = 0; row < 2*list_xyi[i].radius; row++ )
+            for ( int col = 0; col < 2*list_xyi[i].radius; col++ )
+            {
+                QColor clrCurrent( image.pixel( col+list_xyi[i].x-list_xyi[i].radius, row+list_xyi[i].y-list_xyi[i].radius ) );
 
-            int red = clrCurrent.red();
-            int green = clrCurrent.green();
-            int blue = clrCurrent.blue();
+                int red = clrCurrent.red();
+                int green = clrCurrent.green();
+                int blue = clrCurrent.blue();
 
-            BlueRoadSigns.setPixel(col, row, qRgb(red,green,blue));
-        }
+                BlueRoadSigns.setPixel(col, row, qRgb(red,green,blue));
+            }
 
-    QPoint center (xyi[2], xyi[2]);
-    draw_inside_circle(BlueRoadSigns, center, xyi[2], Qt::black);
+        QPoint center (list_xyi[i].radius,list_xyi[i].radius);
+        draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(0,0,0,0));
 
-    ui->label_3->setPixmap(QPixmap::fromImage(BlueRoadSigns));
-    ui->label_3->setScaledContents(true);
+        list_image[i]->setPixmap(QPixmap::fromImage(BlueRoadSigns.scaled(50,50,Qt::KeepAspectRatio)));
+        ui->verticalLayout->addWidget(list_image[i],i+1);
+    }
+
+    ui->scrollAreaWidgetContents->setMinimumHeight(list_xyi.size()*56);
 }
 
 /******************************************************************************

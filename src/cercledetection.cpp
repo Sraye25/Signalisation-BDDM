@@ -6,7 +6,10 @@
 
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
-int xyi[3];
+QVector<xyr> HoughCircleDetector::getListXyi()
+{
+    return list_xyi;
+}
 
 QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, unsigned int max_r)
 {
@@ -64,11 +67,9 @@ QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, uns
         if(hough[x][y] > threshold)
         {
           draw_circle(detection, QPoint(x, y), i, Qt::yellow);
-
-          xyi[0]=x;
-          xyi[1]=y;
-          xyi[2]=i;
-
+          xyr xyi;
+          xyi.x = x; xyi.y=y; xyi.radius=i;
+          list_xyi.push_back(xyi);
         }
       }
     }
@@ -76,17 +77,6 @@ QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, uns
 
   return detection;
 }
-
-int HoughCircleDetector::x(){
-    return xyi[0];
-}
-int HoughCircleDetector::y(){
-    return xyi[1];
-}
-int HoughCircleDetector::i(){
-    return xyi[2];
-}
-
 
 /****************************************************************************
 ** Accumulates a circle on the specified image at the specified position with
