@@ -69,7 +69,7 @@ QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, uns
           draw_circle(detection, QPoint(x, y), i, Qt::yellow);
           xyr xyi;
           xyi.x = x; xyi.y=y; xyi.radius=i;
-          list_xyi.push_back(xyi);
+          list_xyi.push_front(xyi); /// Push front to put largest signs in first (usefull to delete multiple circles detection of the same road sign in the same area)
         }
       }
     }

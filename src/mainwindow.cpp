@@ -220,12 +220,32 @@ void MainWindow::on_pushButton_2_pressed()
 
     HoughCircleDetector hcd;
     QImage resultRedRoadSigns = hcd.detect(RedRoadSigns, min_r, max_r);
-    //resultRedRoadSigns.save("test.jpg");
 
     ui->label_2->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
     ui->label_2->setScaledContents(true);
 
-    QVector<xyr> list_xyi = hcd.getListXyi();
+
+    QVector<xyr> list_xyi1 = hcd.getListXyi();
+
+    QVector<xyr> list_xyi;
+    list_xyi.push_back(list_xyi1[0]);
+    for(int i=0; i< list_xyi1.size(); i++)
+    {
+        bool add = true;
+        for(int j=0; j< list_xyi.size(); j++)
+        {
+            if ( (list_xyi[j].x < list_xyi1[i].x + list_xyi1[i].radius) && (list_xyi[j].x > list_xyi1[i].x - list_xyi1[i].radius) && (list_xyi[j].y < list_xyi1[i].y + list_xyi1[i].radius) && (list_xyi[j].y > list_xyi1[i].y - list_xyi1[i].radius) ) /// If there is another circle which center is inside a founded circle, don't add it
+            {
+                add = false;
+            }
+        }
+        if (add == true) {
+            list_xyi.push_back(list_xyi1[i]);
+        }
+    }
+
+
+
     QVector<QLabel*> list_image;
 
     for(int i=0; i< list_xyi.size(); i++)
