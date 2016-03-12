@@ -1,7 +1,14 @@
 #include "mainwindow.h"
 #include "cercledetection.h"
+#include "filesbddm.h"
 #include "ui_mainwindow.h"
 #include <iostream>
+
+#include <dirent.h>
+
+#ifndef WIN32
+    #include <sys/types.h>
+#endif
 
 static hsv rgb2hsv(rgb in);
 static rgb hsv2rgb(hsv in);
@@ -11,6 +18,8 @@ static QImage Dilatation(QImage RedRoadSigns);
 static QImage Squeletisation(QImage img);
 static int nbPixelVoisins8Noir(QImage temoin, int x, int y);
 static int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y);
+static QImage binarisation_otsu(QImage image);
+//static QImage binarisation_par_seuillage_automatique(QImage image);
 //static QImage detectionContour(QImage temoin);
 
 /******************************************************************************
@@ -218,11 +227,12 @@ void MainWindow::on_pushButton_2_pressed()
 
 
     /* Erosion then Dilatation -> Ouverture (to take off some noise) */
-    RedRoadSigns = Erosion(RedRoadSigns);
+/*    RedRoadSigns = Erosion(RedRoadSigns);
     RedRoadSigns = Dilatation(RedRoadSigns);
+    //Skeletonisation
     RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);
     RedRoadSigns = Squeletisation(RedRoadSigns);
-    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);
+    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);*/
 
     ui->label_3->setPixmap(QPixmap::fromImage(RedRoadSigns));
     ui->label_3->setScaledContents(true);
@@ -259,6 +269,15 @@ void MainWindow::on_pushButton_2_pressed()
         }
     }
 
+    // Count the number of Red Circle Road Signs In Database
+    DIR *pdir = NULL;
+    pdir = opendir (".\\data\\CirclesRoadSigns");
+    FilesBDDM fbddm;
+    int nbRedRoadSignsInDatabase = fbddm.compterFichier(pdir);
+    std::cout << nbRedRoadSignsInDatabase;
+    std::cout << " Red Circles Road Signs In Database" << std::endl;
+    closedir (pdir);
+    float TRessemblances[nbRedRoadSignsInDatabase+2]; //Tableau des ressemblances avec la base de données
 
 
     QVector<QLabel*> list_image;
@@ -281,13 +300,110 @@ void MainWindow::on_pushButton_2_pressed()
             }
 
         QPoint center (list_xyi[i].radius,list_xyi[i].radius);
-        draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(0,0,0,0));
+        draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(255,255,255,0));
 
-        list_image[i]->setPixmap(QPixmap::fromImage(BlueRoadSigns.scaled(50,50,Qt::KeepAspectRatio)));
+        list_image[i]->setPixmap(QPixmap::fromImage(BlueRoadSigns.scaled(100,100,Qt::KeepAspectRatio)));
         ui->verticalLayout->addWidget(list_image[i],i+1);
+
+        // Scale the image to compare it to database
+        BlueRoadSigns = BlueRoadSigns.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+        //Binarise the image to apply skeletonisation
+        BlueRoadSigns = binarisation_otsu(BlueRoadSigns);
+        /* Erosion then Dilatation -> Ouverture (to take off some noise) */
+        BlueRoadSigns = Erosion(BlueRoadSigns);
+        BlueRoadSigns = Dilatation(BlueRoadSigns);
+        //Skeletonisation
+        BlueRoadSigns = Squeletisation(BlueRoadSigns);
+
+
+
+
+
+        // Compare the sign with all in the database to find the most-look-loke sign
+        std::cout << "Recherche des ressemblances" << std::endl;
+        int maxressemblance=0;
+        pdir = opendir (".\\data\\CirclesRoadSigns");
+        struct dirent *pent = NULL;
+        if (pdir == NULL) {
+            std::cout << "\nERROR! pdir could not be initialised correctly";
+            exit (3);
+        }
+        while (pent = readdir (pdir))
+        {
+            if (pent == NULL) {
+                std::cout << "\nERROR! pent could not be initialised correctly";
+                exit (3);
+            }
+            if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0) {
+                std::string chemin = ".\\data\\CirclesRoadSigns\\";
+                chemin += pent->d_name;
+                char* chaine = (char*)chemin.c_str();
+                QImage CurrentImageDatabase(chaine);
+
+                // Scale the image to compare it to database
+                CurrentImageDatabase = CurrentImageDatabase.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+                //Binarise the image to apply skeletonisation
+                CurrentImageDatabase = binarisation_otsu(CurrentImageDatabase);
+
+
+                //Comparaison des ressemblances
+                int ratio=0; //nb de pixels noirs squeletisés à comparer
+                int ressemblances=0; //nb de pixels noirs squeletisés correspondants
+
+                for ( int row = 0; row < BlueRoadSigns.width(); row++ ) {
+                    for ( int col = 0; col < BlueRoadSigns.height(); col++ ){
+                        QColor c( BlueRoadSigns.pixel( col, row ) );
+                        if (c.red()==0) { // Si le pixel est noir
+                            ratio++;
+                            QColor c2( CurrentImageDatabase.pixel( col, row ) );
+                            if (c2.red()==0) {
+                                ressemblances++;
+                            }
+                        }
+                    }
+                }
+                TRessemblances[telldir(pdir)]=ressemblances*100/ratio;
+                std::cout << "no idea ";
+                std::cout << TRessemblances[telldir(pdir)];
+                std::cout << " no idea ";
+                std::cout << telldir(pdir) << std::endl;
+                if (TRessemblances[telldir(pdir)]>TRessemblances[maxressemblance]) {
+                    maxressemblance = telldir(pdir);
+                }
+
+                std::cout << maxressemblance << std::endl;
+            }
+        }
+
+        DIR *pdir2 = NULL;
+        pdir2 = opendir (".\\data\\CirclesRoadSigns");
+        struct dirent *pent2 = NULL;
+        seekdir(pdir2, maxressemblance-1); //le -1 est du au fait que readdir décale les informations de 1
+        ui->label_6->setText(readdir(pdir2)->d_name);
+
+        //A MODIFIER POUR AFFICHER PLUSIEURS PANNEAUX TROUVES
+        seekdir(pdir2, maxressemblance-1);
+        std::string chemin = ".\\data\\CirclesRoadSigns\\";
+        chemin += readdir(pdir2)->d_name;
+        char* chaine = (char*)chemin.c_str();
+        QImage imagetrouvee(chaine);
+        ui->label_5->setPixmap(QPixmap::fromImage(imagetrouvee));
+        ui->label_5->setScaledContents(true);
+
+
+
+        closedir (pdir2);
+
+        closedir (pdir);
+
     }
 
+
+
+
+
     ui->scrollAreaWidgetContents->setMinimumHeight(list_xyi.size()*56);
+
 }
 
 
@@ -653,3 +769,124 @@ QImage detectionContour(QImage temoin)
     return img;
 }
  ******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+/* Binarisation par seuillage automatique: Dynamic Thresholding (pas bon pour les panneaux) */
+/*QImage binarisation_par_seuillage_automatique(QImage image) {
+    int x,y;
+    float A,B,C,DC,b,y0;
+
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+    QColor blancC(255,255,255);
+    QRgb blanc = blancC.rgb();
+
+    QImage image2 = image;
+
+    for (x=0; x<image.width(); x++) {
+        for (y=0; y<image.height(); y++) {
+            if ((x>0) && (y>0)) {
+                QColor c1( image.pixel( x, y ) );
+                A = (c1.red()+c1.blue()+c1.green())/3;
+                QColor c2( image.pixel( x-1, y ) );
+                B = (c2.red()+c2.blue()+c2.green())/3;
+                QColor c3( image.pixel( x, y-1 ) );
+                C = (c3.red()+c3.blue()+c3.green())/3;
+                DC = ((A-B)/2)+((A-C)/2);
+                b = (A+B+C)/3;
+                y0 = -DC+b;
+                if (A<y0) { image2.setPixel(x,y,noir); }
+                if (A>=y0) { image2.setPixel(x,y,blanc); }
+            }
+        }
+    }
+    return image2;
+}*/
+
+
+/* Bianrisation seuillage automatique: Otsu */
+QImage binarisation_otsu(QImage image) {
+    int hist[255];
+    float prob[255], omega[255];
+    float myu[255]; /* Valeur moyenne pour la sÃ©paration */
+    float max_sigma, sigma[255];
+    int i, x, y;
+    int threshold; /* Seuil de binarisation */
+    int moy;
+    int taille=0;
+
+    /* GÃ©nÃ©ration de l'histogramme */
+    for (i = 0; i < 255; i++) hist[i] = 0;
+    for (x=0; x<image.width(); x++) {
+        for (y=0; y<image.height(); y++) {
+            QColor c( image.pixel( x, y ) );
+            if ((c.red()!=255 + c.green()!=255 + c.blue()!=255) || (c.red()!=0 + c.green()!=0 + c.blue()!=0)) {
+                moy = (int)((c.red() + c.green() + c.blue())/3);
+                hist[moy]++;
+                taille++;
+            }
+        }
+    }
+
+    /* calcul de la densitÃ© de probabilitÃ© */
+    for ( i = 0; i < 255; i ++ ) {
+        prob[i] = (double)hist[i] / (taille);
+    }
+
+    /* GÃ©nÃ©ration de omega & myu */
+    omega[0] = prob[0];
+    myu[0] = 0.0;
+    for (i = 1; i < 255; i++) {
+        omega[i] = omega[i-1] + prob[i];
+        myu[i] = i*prob[i];
+    }
+
+    /* calcul de la valeur optimale du seuil */
+    threshold = 0;
+    max_sigma = 0.0;
+    for (i = 0; i < 255; i++) {
+        if (omega[i] != 0.0 && omega[i] != 1.0) { sigma[i] = pow(myu[i]*omega[i] - myu[i], 2) / (omega[i]*(1.0 - omega[i])); }
+        else {sigma[i] = 0.0;}
+        if (sigma[i] > max_sigma) {
+            max_sigma = sigma[i];
+            threshold = i;
+        }
+    }
+    if (threshold==0) threshold=123; /* Cas des images binaires */
+
+    int largeur = image.width();
+    int hauteur = image.height();
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+    QColor blancC(255,255,255);
+    QRgb blanc = blancC.rgb();
+
+    std::cout << "Seuil optimal : ";
+    std::cout << threshold << std::endl;
+
+    QImage image2 = image;
+
+    for (x=0; x<largeur; x++) {
+        for (y=0; y<hauteur; y++) {
+            if ((x>=0) && (y>=0)) {
+                QColor c( image.pixel( x, y ) );
+                moy = (int)((c.red() + c.green() + c.blue())/3);
+
+                if (moy<threshold) { image2.setPixel(x,y,noir); }
+                if (moy>=threshold) { image2.setPixel(x,y,blanc); }
+            }
+        }
+    }
+
+    return image2;
+}
