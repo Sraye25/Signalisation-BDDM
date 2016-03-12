@@ -5,6 +5,13 @@
 
 static hsv rgb2hsv(rgb in);
 static rgb hsv2rgb(hsv in);
+static QImage InvertBlackAndWhite(QImage RedRoadSigns);
+static QImage Erosion(QImage RedRoadSigns);
+static QImage Dilatation(QImage RedRoadSigns);
+static QImage Squeletisation(QImage img);
+static int nbPixelVoisins8Noir(QImage temoin, int x, int y);
+static int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y);
+//static QImage detectionContour(QImage temoin);
 
 /******************************************************************************
  ** Draw a pixel at a given position (x,y) with a given color
@@ -168,12 +175,6 @@ void MainWindow::on_pushButton_2_pressed()
         PsSk[Sk[i]] += PrRk[i];
     }
 
-    int final[255];
-    for(int i = 0; i < 255; i++)
-    {
-        final[i] = (int)(PsSk[i]*255);
-    }
-
     //Calculate final image
     for ( int row = 0; row < RedRoadSigns.height(); row++ ) {
         for ( int col = 0; col < RedRoadSigns.width(); col++ )
@@ -212,6 +213,20 @@ void MainWindow::on_pushButton_2_pressed()
         }
     }
 
+    ui->label_2->setPixmap(QPixmap::fromImage(RedRoadSigns));
+    ui->label_2->setScaledContents(true);
+
+
+    /* Erosion then Dilatation -> Ouverture (to take off some noise) */
+    RedRoadSigns = Erosion(RedRoadSigns);
+    RedRoadSigns = Dilatation(RedRoadSigns);
+    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);
+    RedRoadSigns = Squeletisation(RedRoadSigns);
+    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);
+
+    ui->label_3->setPixmap(QPixmap::fromImage(RedRoadSigns));
+    ui->label_3->setScaledContents(true);
+
     // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;
 
@@ -221,8 +236,8 @@ void MainWindow::on_pushButton_2_pressed()
     HoughCircleDetector hcd;
     QImage resultRedRoadSigns = hcd.detect(RedRoadSigns, min_r, max_r);
 
-    ui->label_2->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
-    ui->label_2->setScaledContents(true);
+    ui->label_4->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
+    ui->label_4->setScaledContents(true);
 
 
     QVector<xyr> list_xyi1 = hcd.getListXyi();
@@ -274,6 +289,17 @@ void MainWindow::on_pushButton_2_pressed()
 
     ui->scrollAreaWidgetContents->setMinimumHeight(list_xyi.size()*56);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /******************************************************************************
  ** RGV to HSV
@@ -382,3 +408,248 @@ rgb hsv2rgb(hsv in)
     }
     return out;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/******************************************************************************
+ ** Invert Black and White color to correspond to our skeletisation implementation
+ ******************************************************************************/
+QImage InvertBlackAndWhite(QImage img) {
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+    QColor blancC(255,255,255);
+    QRgb blanc = blancC.rgb();
+
+    for (int i=1; i<img.width()-1;i++) {
+        for (int j=1; j<img.height()-1;j++) {
+            if (img.pixel(i,j)==noir) {
+                img.setPixel(i,j,blanc);
+            } else if (img.pixel(i,j)==blanc) {
+                img.setPixel(i,j,noir);
+            }
+        }
+    }
+    return img;
+}
+
+/******************************************************************************
+ ** Erosion
+ ******************************************************************************/
+QImage Erosion(QImage RedRoadSigns) {
+
+    QImage temoin = RedRoadSigns;
+
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+
+    for(int i=0; i<temoin.width(); i++)
+    {
+        for(int j=0; j<temoin.height();j++)
+        {
+            if(temoin.pixel(i,j)==noir) //Si le pixel est noir
+            {
+                if(i < temoin.width()-1 && temoin.pixel(i+1,j)!=noir) RedRoadSigns.setPixel(i+1,j,noir);
+                if(i > 0 && temoin.pixel(i-1,j)!=noir) RedRoadSigns.setPixel(i-1,j,noir);
+                if(j < temoin.height()-1 && temoin.pixel(i,j+1)!=noir) RedRoadSigns.setPixel(i,j+1,noir);
+                if(j > 0 && temoin.pixel(i,j-1)!=noir) RedRoadSigns.setPixel(i,j-1,noir);
+            }
+        }
+    }
+
+    return RedRoadSigns;
+}
+
+
+/******************************************************************************
+ ** Dilatation
+ ******************************************************************************/
+QImage Dilatation(QImage RedRoadSigns) {
+
+    QImage temoin = RedRoadSigns;
+
+    QColor blancC(255,255,255);
+    QRgb blanc = blancC.rgb();
+
+    for(int i=0; i<temoin.width(); i++)
+    {
+        for(int j=0; j<temoin.height();j++)
+        {
+            if(temoin.pixel(i,j)==blanc) //Si le pixel est noir
+            {
+                if(i < temoin.width()-1 && temoin.pixel(i+1,j)!=blanc) RedRoadSigns.setPixel(i+1,j,blanc);
+                if(i > 0 && temoin.pixel(i-1,j)!=blanc) RedRoadSigns.setPixel(i-1,j,blanc);
+                if(j < temoin.height()-1 && temoin.pixel(i,j+1)!=blanc) RedRoadSigns.setPixel(i,j+1,blanc);
+                if(j > 0 && temoin.pixel(i,j-1)!=blanc) RedRoadSigns.setPixel(i,j-1,blanc);
+            }
+        }
+    }
+
+    return RedRoadSigns;
+}
+
+
+
+/******************************************************************************
+ ** Squeletisation
+ ******************************************************************************/
+QImage Squeletisation(QImage img) {
+        bool modif1 = true, modif2 = true;
+        QColor noirC(0,0,0);
+        QRgb noir = noirC.rgb();
+        bool res = false;
+
+
+        while(modif1 || modif2)
+        {
+
+            res = false;
+
+            for(int i=1; i<img.width()-1;i++)
+            {
+                for(int j=1; j<img.height()-1;j++)
+                {
+                    if(img.pixel(i,j)==noir)
+                    {
+                        if(nbPixelVoisins8Noir(img,i,j) <= 6 && nbPixelVoisins8Noir(img,i,j) >= 2)
+                        {
+                            if(nbTransitionVoisinBlancNoir(img,i,j) == 1)
+                            {
+                                if(img.pixel(i,j+1)!=noir || img.pixel(i+1,j)!=noir || img.pixel(i,j-1)!=noir)
+                                {
+                                    if(img.pixel(i+1,j)!=noir || img.pixel(i,j-1)!=noir || img.pixel(i-1,j)!=noir)
+                                    {
+                                        img.setPixel(i,j,qRgb(255,255,255));
+                                        res = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            modif1 = res;
+
+
+            res = false;
+
+            for(int i=1; i<img.width()-1;i++)
+            {
+                for(int j=1; j<img.height()-1;j++)
+                {
+                    if(img.pixel(i,j)==noir)
+                    {
+                        if(nbPixelVoisins8Noir(img,i,j) <= 6 && nbPixelVoisins8Noir(img,i,j) >= 2)
+                        {
+                            if(nbTransitionVoisinBlancNoir(img,i,j) == 1)
+                            {
+                                if(img.pixel(i,j+1)!=noir || img.pixel(i+1,j)!=noir || img.pixel(i-1,j)!=noir)
+                                {
+                                    if(img.pixel(i,j+1)!=noir || img.pixel(i,j-1)!=noir || img.pixel(i-1,j)!=noir)
+                                    {
+                                        img.setPixel(i,j,qRgb(255,255,255));
+                                        res = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            modif2 = res;
+        }
+
+        return img;
+
+    }
+
+int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y)
+{
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+
+    int res=0;
+
+    if(temoin.pixel(x,y+1)!=noir && temoin.pixel(x+1,y+1)==noir) res++;
+    if(temoin.pixel(x+1,y+1)!=noir && temoin.pixel(x+1,y)==noir) res++;
+    if(temoin.pixel(x+1,y)!=noir && temoin.pixel(x+1,y-1)==noir) res++;
+    if(temoin.pixel(x+1,y-1)!=noir && temoin.pixel(x,y-1)==noir) res++;
+    if(temoin.pixel(x,y-1)!=noir && temoin.pixel(x-1,y-1)==noir) res++;
+    if(temoin.pixel(x-1,y-1)!=noir && temoin.pixel(x-1,y)==noir) res++;
+    if(temoin.pixel(x-1,y)!=noir && temoin.pixel(x-1,y+1)==noir) res++;
+    if(temoin.pixel(x-1,y+1)!=noir && temoin.pixel(x,y+1)==noir) res++;
+
+    return res;
+}
+
+//==========================================================================================================
+int nbPixelVoisins8Noir(QImage temoin, int x, int y)
+{
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+
+    int res=0;
+    if(x<temoin.width()-1 && temoin.pixel(x+1,y)==noir) res++;
+    if(x<temoin.width()-1 && y<temoin.height()-1 && temoin.pixel(x+1,y+1)==noir) res++;
+    if(x<temoin.width()-1 && y>0 && temoin.pixel(x+1,y-1)==noir) res++;
+    if(x>0 && temoin.pixel(x-1,y)==noir) res++;
+    if(x>0 && y<temoin.height()-1 && temoin.pixel(x-1,y+1)==noir) res++;
+    if(x>0 && y>0 && temoin.pixel(x-1,y-1)==noir) res++;
+    if(y<temoin.height()-1 && temoin.pixel(x,y+1)==noir) res++;
+    if(y>0 && temoin.pixel(x,y-1)==noir) res++;
+
+    return res;
+}
+
+
+
+
+
+
+
+
+
+
+
+/******************************************************************************
+ ** Recognition of changement opf White and Black to replace skeletisation but this method os too slow
+ ******************************************************************************
+QImage detectionContour(QImage temoin)
+{
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+
+    QColor blancC(255,255,255);
+    QRgb blanc =blancC.rgb();
+
+    QImage img = temoin;
+
+    //Pour tt les pixels
+    for(int i=0; i<temoin.width(); i++)
+    {
+        for(int j=0; j<temoin.height();j++)
+        {
+            if(temoin.pixel(i,j)!=noir && nbPixelVoisins8Noir(temoin,i,j)!=0) //Si le pixel est blanc et a des voisin noirs
+            {
+                img.setPixel(QPoint(i,j),noir);
+            }
+            else
+            {
+                img.setPixel(QPoint(i,j),blanc);
+            }
+        }
+    }
+    return img;
+}
+ ******************************************************************************/
