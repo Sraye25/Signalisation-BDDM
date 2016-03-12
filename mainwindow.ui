@@ -56,14 +56,14 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>30</y>
-      <width>591</width>
-      <height>511</height>
+      <x>310</x>
+      <y>10</y>
+      <width>181</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="text">
-     <string>Road Signs Red</string>
+     <string>Red Color Objects recognition</string>
     </property>
    </widget>
    <widget class="QScrollArea" name="scrollArea">
@@ -98,7 +98,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>56</width>
+       <width>52</width>
        <height>579</height>
       </rect>
      </property>
@@ -124,6 +124,32 @@
       </layout>
      </widget>
     </widget>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>170</y>
+      <width>191</width>
+      <height>181</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Erosion -&gt; Dilatation -&gt; Squeletonisation</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>360</y>
+      <width>201</width>
+      <height>181</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Circle detection</string>
+    </property>
    </widget>
   </widget>
  </widget>
