@@ -10,7 +10,6 @@ DONE:
 -remplissage de la base de données
 -ajout d'images test
 -correction d'un bug faisant crasher l'app du au tableau non initialisé (et du coup tableau d'int était assigné à 'nan' oO??)
--linux support added (now windows and linux)
 
 NEXT:
 ->reconnaitre les formes (triangles, carrés)
