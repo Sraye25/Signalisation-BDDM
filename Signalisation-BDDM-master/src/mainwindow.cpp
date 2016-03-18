@@ -19,6 +19,7 @@ static QImage Squeletisation(QImage img);
 static int nbPixelVoisins8Noir(QImage temoin, int x, int y);
 static int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y);
 static QImage binarisation_otsu(QImage image);
+static QImage binarisationautre(QImage image);
 //static QImage binarisation_par_seuillage_automatique(QImage image);
 //static QImage detectionContour(QImage temoin);
 
@@ -359,7 +360,7 @@ void MainWindow::on_pushButton_2_pressed()
                 // Scale the image to compare it to database
                 CurrentImageDatabase = CurrentImageDatabase.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
                 //Binarise the image to apply skeletonisation
-                CurrentImageDatabase = binarisation_otsu(CurrentImageDatabase);
+                CurrentImageDatabase = binarisationautre(CurrentImageDatabase);
 
 
                 //Comparaison des ressemblances
@@ -387,6 +388,8 @@ void MainWindow::on_pushButton_2_pressed()
 
                 std::cout << "no idea ";
                 std::cout << TRessemblances[fichiersparcourus][0];
+                std::cout << " no idea ";
+                std::cout << TRessemblances[fichiersparcourus][1];
                 std::cout << " no idea " << std::endl;
 
                 if (TRessemblances[fichiersparcourus][1]>TRessemblances[maxressemblance][1]) {
@@ -930,4 +933,29 @@ QImage binarisation_otsu(QImage image) {
     }
 
     return image2;
+}
+
+
+
+
+/* Bianrisation seuillage automatique: Otsu */
+QImage binarisationautre(QImage image) {
+
+    for ( int row = 0; row < image.height(); row++ ) {
+        for ( int col = 0; col < image.width(); col++ )
+        {
+            QColor clrCurrent( image.pixel( col, row ) );
+
+            int red = clrCurrent.red();
+            int green = clrCurrent.green();
+            int blue = clrCurrent.blue();
+
+            if (red >100 && green>100 && blue>100) {
+                image.setPixel(col, row, qRgb(255,255,255));
+            }
+            else image.setPixel(col, row, qRgb(0,0,0));
+        }
+    }
+
+    return image;
 }
