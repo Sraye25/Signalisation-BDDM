@@ -111,11 +111,13 @@ void MainWindow::on_pushButton_pressed()
 void MainWindow::on_pushButton_2_pressed()
 {
     QImage image = ui->label->pixmap()->toImage();
-    if(image.isNull())
-        return;
-
+    if(image.isNull()) return;
     QImage RedRoadSigns = ui->label->pixmap()->toImage();
 
+    //Reinitialisation des afficheurs
+    QLayoutItem *child;
+    while((child = ui->verticalLayout->takeAt(0)) != 0) delete child;
+    while((child = ui->verticalLayout_2->takeAt(0)) != 0) delete child;
 
     // EGALISATION TEST //
     int histogram[255];
@@ -252,8 +254,10 @@ void MainWindow::on_pushButton_2_pressed()
 
 
     QVector<xyr> list_xyi1 = hcd.getListXyi();
-
     QVector<xyr> list_xyi;
+
+    list_xyi.clear();
+
     list_xyi.push_back(list_xyi1[0]);
     for(int i=0; i< list_xyi1.size(); i++)
     {
@@ -282,10 +286,16 @@ void MainWindow::on_pushButton_2_pressed()
     std::cout << nbRedRoadSignsInDatabase;
     std::cout << " Red Circles Road Signs In Database" << std::endl;
     closedir (pdir);
-    long TRessemblances[nbRedRoadSignsInDatabase+2][2] = {-1}; //Tableau des ressemblances avec la base de données
+    long TRessemblances[nbRedRoadSignsInDatabase+2][2]; //Tableau des ressemblances avec la base de données
 
+    for(int k=0; k<nbRedRoadSignsInDatabase+2; k++)
+    {
+        TRessemblances[k][0] = -1;
+        TRessemblances[k][1] = -1;
+    }
 
     QVector<QLabel*> list_image;
+    QVector<QLabel*> panneau_trouve;
 
     for(int i=0; i< list_xyi.size(); i++)
     {
@@ -320,17 +330,11 @@ void MainWindow::on_pushButton_2_pressed()
         //Skeletonisation
         BlueRoadSigns = Squeletisation(BlueRoadSigns);
 
-
-
-
-
         // Compare the sign with all in the database to find the most-look-loke sign
         std::cout << "Recherche des ressemblances" << std::endl;
         int maxressemblance=0;
 
-
         pdir = opendir ("./data/CirclesRedRoadSigns/");
-
 
         struct dirent *pent = NULL;
         if (pdir == NULL) {
@@ -406,11 +410,10 @@ void MainWindow::on_pushButton_2_pressed()
 
         pdir2 = opendir ("./data/CirclesRedRoadSigns/");
 
-
-        struct dirent *pent2 = NULL;
+        //Afficher nom fichier
+        /*struct dirent *pent2 = NULL;
         rewinddir(pdir2);
-        seekdir(pdir2, TRessemblances[maxressemblance-1][0]); //le -1 est du au fait que readdir décale les informations de 1
-        ui->label_6->setText(readdir(pdir2)->d_name);
+        seekdir(pdir2, TRessemblances[maxressemblance-1][0]); //le -1 est du au fait que readdir décale les informations de 1*/
 
         std::cout << "no idea ";
         std::cout << maxressemblance;
@@ -430,34 +433,22 @@ void MainWindow::on_pushButton_2_pressed()
 
         chemin += readdir(pdir2)->d_name;
         char* chaine = (char*)chemin.c_str();
+
         QImage imagetrouvee(chaine);
-        ui->label_5->setPixmap(QPixmap::fromImage(imagetrouvee));
-        ui->label_5->setScaledContents(true);
+        panneau_trouve.push_back(new QLabel());
 
-
+        panneau_trouve[i]->setPixmap(QPixmap::fromImage(imagetrouvee.scaled(100,100,Qt::KeepAspectRatio)));
+        ui->verticalLayout_2->addWidget(panneau_trouve[i],i+1);
 
         closedir (pdir2);
-
         closedir (pdir);
 
     }
 
-
-
-
-
     ui->scrollAreaWidgetContents->setMinimumHeight(list_xyi.size()*56);
+    //for()
 
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -568,20 +559,6 @@ rgb hsv2rgb(hsv in)
     }
     return out;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /******************************************************************************
  ** Invert Black and White color to correspond to our skeletisation implementation
@@ -772,16 +749,6 @@ int nbPixelVoisins8Noir(QImage temoin, int x, int y)
     return res;
 }
 
-
-
-
-
-
-
-
-
-
-
 /******************************************************************************
  ** Recognition of changement opf White and Black to replace skeletisation but this method os too slow
  ******************************************************************************
@@ -813,17 +780,6 @@ QImage detectionContour(QImage temoin)
     return img;
 }
  ******************************************************************************/
-
-
-
-
-
-
-
-
-
-
-
 
 /* Binarisation par seuillage automatique: Dynamic Thresholding (pas bon pour les panneaux) */
 /*QImage binarisation_par_seuillage_automatique(QImage image) {
@@ -934,9 +890,6 @@ QImage binarisation_otsu(QImage image) {
 
     return image2;
 }
-
-
-
 
 /* Bianrisation seuillage automatique: Otsu */
 QImage binarisationautre(QImage image) {
