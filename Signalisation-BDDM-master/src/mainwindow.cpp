@@ -110,14 +110,10 @@ void MainWindow::on_pushButton_pressed()
  ******************************************************************************/
 void MainWindow::on_pushButton_2_pressed()
 {
-    QImage image = ui->label->pixmap()->toImage();
-    if(image.isNull()) return;
+    QImage image = ui->label->pixmap()->toImage(); if(image.isNull()) return;
     QImage RedRoadSigns = ui->label->pixmap()->toImage();
-
-    //Reinitialisation des afficheurs
-    QLayoutItem *child;
-    while((child = ui->verticalLayout->takeAt(0)) != 0) delete child;
-    while((child = ui->verticalLayout_2->takeAt(0)) != 0) delete child;
+    MenuDeroulant menuImage(ui->verticalLayout,ui->scrollAreaWidgetContents);
+    MenuDeroulant menuResultat(ui->verticalLayout_2,ui->scrollAreaWidgetContents_2);
 
     // EGALISATION TEST //
     int histogram[255];
@@ -252,7 +248,6 @@ void MainWindow::on_pushButton_2_pressed()
     ui->label_4->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
     ui->label_4->setScaledContents(true);
 
-
     QVector<xyr> list_xyi1 = hcd.getListXyi();
     QVector<xyr> list_xyi;
 
@@ -277,9 +272,7 @@ void MainWindow::on_pushButton_2_pressed()
     // Count the number of Red Circle Road Signs In Database
     DIR *pdir = NULL;
 
-
     pdir = opendir ("./data/CirclesRedRoadSigns/");
-
 
     FilesBDDM fbddm;
     int nbRedRoadSignsInDatabase = fbddm.compterFichier(pdir);
@@ -294,13 +287,9 @@ void MainWindow::on_pushButton_2_pressed()
         TRessemblances[k][1] = -1;
     }
 
-    QVector<QLabel*> list_image;
-    QVector<QLabel*> panneau_trouve;
-
     for(int i=0; i< list_xyi.size(); i++)
     {
         QImage BlueRoadSigns = QImage(2*(list_xyi[i].radius), 2*(list_xyi[i].radius), QImage::Format_RGB32);
-        list_image.push_back(new QLabel());
 
         for ( int row = 0; row < 2*list_xyi[i].radius; row++ )
             for ( int col = 0; col < 2*list_xyi[i].radius; col++ )
@@ -317,8 +306,7 @@ void MainWindow::on_pushButton_2_pressed()
         QPoint center (list_xyi[i].radius,list_xyi[i].radius);
         draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(255,255,255,0));
 
-        list_image[i]->setPixmap(QPixmap::fromImage(BlueRoadSigns.scaled(100,100,Qt::KeepAspectRatio)));
-        ui->verticalLayout->addWidget(list_image[i],i+1);
+        menuImage.ajouterImage(BlueRoadSigns.scaled(100,100,Qt::KeepAspectRatio));
 
         // Scale the image to compare it to database
         BlueRoadSigns = BlueRoadSigns.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -407,13 +395,7 @@ void MainWindow::on_pushButton_2_pressed()
 
         DIR *pdir2 = NULL;
 
-
         pdir2 = opendir ("./data/CirclesRedRoadSigns/");
-
-        //Afficher nom fichier
-        /*struct dirent *pent2 = NULL;
-        rewinddir(pdir2);
-        seekdir(pdir2, TRessemblances[maxressemblance-1][0]); //le -1 est du au fait que readdir décale les informations de 1*/
 
         std::cout << "no idea ";
         std::cout << maxressemblance;
@@ -427,28 +409,19 @@ void MainWindow::on_pushButton_2_pressed()
         rewinddir(pdir2);
         seekdir(pdir2, TRessemblances[maxressemblance-1][0]);
 
-
         std::string chemin = "./data/CirclesRedRoadSigns/";
-
 
         chemin += readdir(pdir2)->d_name;
         char* chaine = (char*)chemin.c_str();
 
         QImage imagetrouvee(chaine);
-        panneau_trouve.push_back(new QLabel());
-
-        panneau_trouve[i]->setPixmap(QPixmap::fromImage(imagetrouvee.scaled(100,100,Qt::KeepAspectRatio)));
-        ui->verticalLayout_2->addWidget(panneau_trouve[i],i+1);
+        menuResultat.ajouterImage(imagetrouvee.scaled(100,100,Qt::KeepAspectRatio));
 
         closedir (pdir2);
         closedir (pdir);
-
     }
-
-    ui->scrollAreaWidgetContents->setMinimumHeight(list_xyi.size()*56);
-    //for()
-
 }
+
 
 
 
@@ -711,6 +684,7 @@ QImage Squeletisation(QImage img) {
 
     }
 
+//==========================================================================================================
 int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y)
 {
     QColor noirC(0,0,0);
@@ -749,71 +723,7 @@ int nbPixelVoisins8Noir(QImage temoin, int x, int y)
     return res;
 }
 
-/******************************************************************************
- ** Recognition of changement opf White and Black to replace skeletisation but this method os too slow
- ******************************************************************************
-QImage detectionContour(QImage temoin)
-{
-    QColor noirC(0,0,0);
-    QRgb noir = noirC.rgb();
-
-    QColor blancC(255,255,255);
-    QRgb blanc =blancC.rgb();
-
-    QImage img = temoin;
-
-    //Pour tt les pixels
-    for(int i=0; i<temoin.width(); i++)
-    {
-        for(int j=0; j<temoin.height();j++)
-        {
-            if(temoin.pixel(i,j)!=noir && nbPixelVoisins8Noir(temoin,i,j)!=0) //Si le pixel est blanc et a des voisin noirs
-            {
-                img.setPixel(QPoint(i,j),noir);
-            }
-            else
-            {
-                img.setPixel(QPoint(i,j),blanc);
-            }
-        }
-    }
-    return img;
-}
- ******************************************************************************/
-
-/* Binarisation par seuillage automatique: Dynamic Thresholding (pas bon pour les panneaux) */
-/*QImage binarisation_par_seuillage_automatique(QImage image) {
-    int x,y;
-    float A,B,C,DC,b,y0;
-
-    QColor noirC(0,0,0);
-    QRgb noir = noirC.rgb();
-    QColor blancC(255,255,255);
-    QRgb blanc = blancC.rgb();
-
-    QImage image2 = image;
-
-    for (x=0; x<image.width(); x++) {
-        for (y=0; y<image.height(); y++) {
-            if ((x>0) && (y>0)) {
-                QColor c1( image.pixel( x, y ) );
-                A = (c1.red()+c1.blue()+c1.green())/3;
-                QColor c2( image.pixel( x-1, y ) );
-                B = (c2.red()+c2.blue()+c2.green())/3;
-                QColor c3( image.pixel( x, y-1 ) );
-                C = (c3.red()+c3.blue()+c3.green())/3;
-                DC = ((A-B)/2)+((A-C)/2);
-                b = (A+B+C)/3;
-                y0 = -DC+b;
-                if (A<y0) { image2.setPixel(x,y,noir); }
-                if (A>=y0) { image2.setPixel(x,y,blanc); }
-            }
-        }
-    }
-    return image2;
-}*/
-
-
+//==========================================================================================================
 /* Bianrisation seuillage automatique: Otsu */
 QImage binarisation_otsu(QImage image) {
     int hist[255];
@@ -891,6 +801,7 @@ QImage binarisation_otsu(QImage image) {
     return image2;
 }
 
+//==========================================================================================================
 /* Bianrisation seuillage automatique: Otsu */
 QImage binarisationautre(QImage image) {
 

@@ -95,7 +95,7 @@
    <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>839</x>
       <y>10</y>
       <width>120</width>
       <height>579</height>
@@ -117,7 +117,7 @@
      <bool>true</bool>
     </property>
     <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <set>Qt::AlignHCenter|Qt::AlignTop</set>
     </property>
     <widget class="QWidget" name="scrollAreaWidgetContents">
      <property name="geometry">
@@ -139,7 +139,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>161</width>
+        <width>101</width>
         <height>581</height>
        </rect>
       </property>
@@ -170,7 +170,7 @@
      <bool>true</bool>
     </property>
     <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <set>Qt::AlignHCenter|Qt::AlignTop</set>
     </property>
     <widget class="QWidget" name="scrollAreaWidgetContents_2">
      <property name="geometry">
@@ -186,13 +186,13 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>121</width>
+        <width>101</width>
         <height>581</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="sizeConstraint">
-        <enum>QLayout::SetMinimumSize</enum>
+        <enum>QLayout::SetFixedSize</enum>
        </property>
       </layout>
      </widget>
