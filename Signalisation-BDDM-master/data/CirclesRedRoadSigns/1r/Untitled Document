@@ -1,0 +1,6 @@
+0b -> 0 composante connexe noir
+1b -> 1 composante connexe noir
+2b -> 2 composantes connexes noir
+3b -> 3 composantes connexes noir
+
+Les autres vont être très compliqués à traiter (trop de textes différents qui sont quasiment les mêmes)
