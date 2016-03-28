@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "cercledetection.h"
+#include "indexationrecherche.h"
 #include "filesbddm.h"
 #include "ui_mainwindow.h"
 #include <iostream>
@@ -306,6 +307,13 @@ void MainWindow::on_pushButton_2_pressed()
         QPoint center (list_xyi[i].radius,list_xyi[i].radius);
         draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(255,255,255,0));
 
+
+        IndexationRecherche Indexationrech;
+        std::string adddossierrecherche = Indexationrech.rechercherbondossierrecherche(BlueRoadSigns);
+        std::cout << "Nb de composantes connexes te : ";
+        std::cout << adddossierrecherche << std::endl;
+
+
         menuImage.ajouterImage(BlueRoadSigns.scaled(100,100,Qt::KeepAspectRatio));
 
         // Scale the image to compare it to database
@@ -322,7 +330,12 @@ void MainWindow::on_pushButton_2_pressed()
         std::cout << "Recherche des ressemblances" << std::endl;
         int maxressemblance=0;
 
-        pdir = opendir ("./data/CirclesRedRoadSigns/");
+        std::string chemin2 = "./data/CirclesRedRoadSigns/";
+        chemin2+=adddossierrecherche;
+
+        const char * charchemin = chemin2.c_str();
+
+        pdir = opendir (charchemin);
 
         struct dirent *pent = NULL;
         if (pdir == NULL) {
@@ -338,12 +351,11 @@ void MainWindow::on_pushButton_2_pressed()
             }
             if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0) {
 
+                std::string chemin3 = "./data/CirclesRedRoadSigns/";
+                chemin3+=adddossierrecherche;
 
-                std::string chemin = "./data/CirclesRedRoadSigns/";
-
-
-                chemin += pent->d_name;
-                char* chaine = (char*)chemin.c_str();
+                chemin3 += pent->d_name;
+                char* chaine = (char*)chemin3.c_str();
                 QImage CurrentImageDatabase(chaine);
 
                 std::cout << "Le fichier a bien été ouvert : ";
@@ -395,7 +407,11 @@ void MainWindow::on_pushButton_2_pressed()
 
         DIR *pdir2 = NULL;
 
-        pdir2 = opendir ("./data/CirclesRedRoadSigns/");
+        std::string chemin4 = "./data/CirclesRedRoadSigns/";
+        chemin4+=adddossierrecherche;
+        char* chaine1 = (char*)chemin4.c_str();
+
+        pdir2 = opendir (chaine1);
 
         std::cout << "no idea ";
         std::cout << maxressemblance;
@@ -409,8 +425,14 @@ void MainWindow::on_pushButton_2_pressed()
         rewinddir(pdir2);
         seekdir(pdir2, TRessemblances[maxressemblance-1][0]);
 
-        std::string chemin = "./data/CirclesRedRoadSigns/";
 
+        std::cout << " test " << std::endl;
+
+
+        std::string chemin = "./data/CirclesRedRoadSigns/";
+        chemin+=adddossierrecherche;
+        std::cout << " no idea 1" << std::endl;
+        std::cout << chemin << std::endl;
         chemin += readdir(pdir2)->d_name;
         char* chaine = (char*)chemin.c_str();
 

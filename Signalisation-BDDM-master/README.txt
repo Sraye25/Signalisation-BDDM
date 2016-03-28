@@ -11,6 +11,8 @@ DONE:
 -ajout d'images test
 -correction d'un bug faisant crasher l'app du au tableau non initialisé (et du coup tableau d'int était assigné à 'nan' oO??)
 -nouvelle binarisation pour les panneaux ce qui améliore grandement la reconnaissance
+création de fonctions afin d'ajouter les images dans la liste
+-indexation terminée pour les panneaux circulaires rouges
 
 NEXT:
 ->reconnaitre les formes (triangles, carrés)
@@ -18,7 +20,7 @@ NEXT:
 
 BUGS:
 ->Si on clique sur un bouton sans avoir chargé une image, fait planter le programme
-->Bug make install (windows uniquement)
+->Bug fonctions ajout image : plus d'une image fait planter le programme
 
 AUTRES:
 Osef les panneaux bleus pour le moment
