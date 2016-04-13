@@ -4,6 +4,8 @@
 #include <QImage>
 #include <QVector>
 
+#include "detection.h"
+
 typedef QVector<unsigned int> IntArray;
 typedef QVector<IntArray>     Image;
 
@@ -12,6 +14,8 @@ typedef struct {
     double y;
     double radius;
 } xyr;
+
+QImage edges(const QImage &source);
 
 class HoughCircleDetector
 {
@@ -32,7 +36,6 @@ class HoughCircleDetector
         void draw_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color);
         void draw_pixel(QImage &image, const QPoint &position, const QColor &color);
 
-        QImage edges(const QImage &source);
 
         QVector<xyr> list_xyi;
 };

@@ -237,6 +237,11 @@ void MainWindow::on_pushButton_2_pressed()
     ui->label_3->setPixmap(QPixmap::fromImage(RedRoadSigns));
     ui->label_3->setScaledContents(true);
 
+    ///TRIANGLES
+
+    Triangledetection tri;
+    tri.detect(RedRoadSigns);
+
     // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;
 

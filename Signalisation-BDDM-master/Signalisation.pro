@@ -21,12 +21,16 @@ SOURCES += src/main.cpp\
     src/cercledetection.cpp \
     src/filesbddm.cpp \
     src/affichage.cpp \
-    src/indexationrecherche.cpp
+    src/indexationrecherche.cpp \
+    src/triangledetection.cpp \
+    src/detection.cpp
 
 HEADERS  += src/mainwindow.h \
     src/cercledetection.h \
     src/filesbddm.h \
     src/affichage.h \
-    src/indexationrecherche.h
+    src/indexationrecherche.h \
+    src/triangledetection.h \
+    src/detection.h
 
 FORMS    += mainwindow.ui
