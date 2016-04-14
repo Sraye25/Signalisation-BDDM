@@ -6,6 +6,14 @@
 
 #include "detection.h"
 
+typedef struct Triangle Triangle;
+struct Triangle
+{
+    QPoint p1;
+    QPoint p2;
+    QPoint p3;
+};
+
 class Triangledetection
 {
     public:
@@ -14,5 +22,7 @@ class Triangledetection
         QImage detect(const QImage &source);
 
 };
+
+void dessiner(QImage &image, const Triangle& triangle, QRgb couleur);
 
 #endif // TRIANGLEDETECTION_H

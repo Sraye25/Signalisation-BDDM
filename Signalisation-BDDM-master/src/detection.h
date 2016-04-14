@@ -24,4 +24,23 @@ void tracerLigne(QImage& image, int rho, int theta, QRgb couleur);
 //Tracer ligne
 void tracerDroite(QImage& image, QPoint p1, QPoint p2, QRgb couleur);
 
+//Tracer segment
+void ligneBresenham(QImage& image, QPoint point1, QPoint point2, QRgb couleur);
+
+//Dessiner un pixel
+void setPixel(QImage& image, QPoint point, QRgb couleur);
+
+//Si point dans image
+bool estPointImage(const QImage& image, QPoint point);
+
+//DOnne le point d'inter de deux droites de type (rho,theta)
+// Si les droites sont parralleles, on renvoie (MAX_INT, MAX_INT)
+QPoint intersection(QPoint droite1, QPoint droite2);
+
+//(pho,theta) -> (a,b)
+void RhoThetaVersAB(QPoint rhoTheta, double &a, double &b);
+
+//distance euclidienne entre 2 points
+int distance(QPoint p1, QPoint p2);
+
 #endif // DETECTION_H

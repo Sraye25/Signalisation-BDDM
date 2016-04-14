@@ -149,7 +149,7 @@ void tracerDroite(QImage& image, QPoint p1, QPoint p2, QRgb couleur)
     double a=0.0;
     double b=0.0;
 
-    if(p2.x()-p1.x() !=0)
+    if((double)p2.x()-(double)p1.x() !=0)
     {
         a = ((double)p2.y()-(double)p1.y())/((double)p2.x()-(double)p1.x());
         b = p1.y() - a*p1.x();
@@ -172,4 +172,126 @@ void tracerDroite(QImage& image, QPoint p1, QPoint p2, QRgb couleur)
             image.setPixel(p1.x(),i,couleur);
     }
 
+}
+
+void ligneBresenham(QImage& image, QPoint point1, QPoint point2, QRgb couleur)
+{
+    int dx,dy,critere,incX,incY,i;
+    QPoint point = point1;
+
+    dx = point2.x()-point1.x(); dy = point2.y()-point1.y();
+
+    if(dx > 0) incX = 1; else incX = -1;
+    if(dy > 0) incY = 1; else incY = -1;
+
+    dx=abs(dx);
+    dy=abs(dy);
+
+    if (dx>dy)
+    {
+        critere=dx/2;
+        for (i=1;i<=dx;i++)
+        {
+            setPixel(image,point,couleur);
+            point.setX(point.x()+incX);
+            critere += dy;
+            if (critere>=dx)
+            {
+                critere -= dx;
+                point.setY(point.y()+incY);
+            }
+        }
+    }
+    else
+    {
+        critere=dy/2;
+        for (i=1;i<=dy;i++)
+        {
+            setPixel(image,point,couleur);
+            point.setY(point.y()+incY) ;
+            critere += dx ;
+            if (critere>=dy)
+            {
+                critere -= dy;
+                point.setX(point.x()+incX);
+            }
+        }
+    }
+
+    setPixel(image,point,couleur);
+}
+
+void setPixel(QImage& image, QPoint point, QRgb couleur)
+{
+    if(estPointImage(image,point))
+    {
+        image.setPixel(point,couleur);
+    }
+}
+
+bool estPointImage(const QImage& image, QPoint point)
+{
+    if(point.x()>=0 && point.x()<image.width() && point.y()>=0 && point.y()<image.height())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+QPoint intersection(QPoint droite1, QPoint droite2)
+{
+    double x,y,a1,a2,b1,b2;
+    QPoint res;
+    RhoThetaVersAB(droite1,a1,b1);
+    RhoThetaVersAB(droite2,a2,b2);
+
+    //Si les droites sont parralleles
+    if(a1 == a2)
+    {
+        res.setX(INT_MAX);
+        res.setY(INT_MAX);
+    }
+    else
+    {
+        x = (b2-b1)/(a1-a2);
+        y = a1*x+b1;
+        res.setX((int)x);
+        res.setY((int)y);
+    }
+
+    return res;
+}
+
+void RhoThetaVersAB(QPoint rhoTheta, double& a, double& b)
+{
+    QPoint p1, p2;
+    a=0.0;
+    b=0.0;
+
+    p1.setX(rhoTheta.x()*cos(rhoTheta.y()*M_PI/180));
+    p1.setY(rhoTheta.x()*sin(rhoTheta.y()*M_PI/180));
+
+    p2.setX(-p1.y()+p1.x());
+    p2.setY(p1.x()+p1.y());
+
+    if((double)p2.x()-(double)p1.x() != 0.0)
+    {
+        a = ((double)p2.y()-(double)p1.y())/((double)p2.x()-(double)p1.x());
+        b = (double)p1.y() - a*(double)p1.x();
+    }
+    else
+    {
+        a = INT_MAX;
+        b = p1.x();
+    }
+}
+
+int distance(QPoint p1, QPoint p2)
+{
+    QPoint res = p1 - p2;
+    int ret = sqrt(res.x()*res.x()+res.y()*res.y());
+    return ret;
 }
