@@ -198,6 +198,19 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>350</y>
+      <width>291</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Ligne detection</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

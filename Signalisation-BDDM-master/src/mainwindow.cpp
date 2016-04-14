@@ -240,7 +240,10 @@ void MainWindow::on_pushButton_2_pressed()
     ///TRIANGLES
 
     Triangledetection tri;
-    tri.detect(RedRoadSigns);
+    QImage ligneImage = tri.detect(RedRoadSigns);
+
+    ui->label_5->setPixmap(QPixmap::fromImage(ligneImage));
+    ui->label_5->setScaledContents(true);
 
     // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;
@@ -259,21 +262,25 @@ void MainWindow::on_pushButton_2_pressed()
 
     list_xyi.clear();
 
-    list_xyi.push_back(list_xyi1[0]);
-    for(int i=0; i< list_xyi1.size(); i++)
+    if(!list_xyi1.empty())
     {
-        bool add = true;
-        for(int j=0; j< list_xyi.size(); j++)
+        list_xyi.push_back(list_xyi1[0]);
+        for(int i=0; i< list_xyi1.size(); i++)
         {
-            if ( (list_xyi[j].x < list_xyi1[i].x + list_xyi1[i].radius) && (list_xyi[j].x > list_xyi1[i].x - list_xyi1[i].radius) && (list_xyi[j].y < list_xyi1[i].y + list_xyi1[i].radius) && (list_xyi[j].y > list_xyi1[i].y - list_xyi1[i].radius) ) /// If there is another circle which center is inside a founded circle, don't add it
+            bool add = true;
+            for(int j=0; j< list_xyi.size(); j++)
             {
-                add = false;
+                if ( (list_xyi[j].x < list_xyi1[i].x + list_xyi1[i].radius) && (list_xyi[j].x > list_xyi1[i].x - list_xyi1[i].radius) && (list_xyi[j].y < list_xyi1[i].y + list_xyi1[i].radius) && (list_xyi[j].y > list_xyi1[i].y - list_xyi1[i].radius) ) /// If there is another circle which center is inside a founded circle, don't add it
+                {
+                    add = false;
+                }
+            }
+            if (add == true) {
+                list_xyi.push_back(list_xyi1[i]);
             }
         }
-        if (add == true) {
-            list_xyi.push_back(list_xyi1[i]);
-        }
     }
+
 
     // Count the number of Red Circle Road Signs In Database
     DIR *pdir = NULL;

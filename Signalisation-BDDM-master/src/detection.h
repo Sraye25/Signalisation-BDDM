@@ -7,6 +7,7 @@
 #include <QColor>
 #include <cmath>
 #include <QPoint>
+#include <iostream>
 
 //Avoir les contours
 QImage edges(const QImage &source);
@@ -15,6 +16,12 @@ QImage edges(const QImage &source);
 QVector<QPoint> hough(const QImage &image);
 
 //Avoir les lignes d'un angle particulier (+ ou - écart)
-QVector<QPoint> avoirLigneAngle(const QVector<QPoint> &ligne, int angle, int ecart);
+void avoirLigneAngle(const QVector<QPoint> &ligne, QVector<QPoint> &temp, int angle, int ecart);
+
+//Tracer une ligne sur une image
+void tracerLigne(QImage& image, int rho, int theta, QRgb couleur);
+
+//Tracer ligne
+void tracerDroite(QImage& image, QPoint p1, QPoint p2, QRgb couleur);
 
 #endif // DETECTION_H

@@ -106,7 +106,7 @@ QVector<QPoint> hough(const QImage &image)
     {
         for(int j=0;j<max_theta;j++)
         {
-            if(accumulateur[i][j]>=10) res.push_back(QPoint(i,j));
+            if(accumulateur[i][j]>=30) res.push_back(QPoint(i,j));
         }
     }
 
@@ -117,18 +117,59 @@ QVector<QPoint> hough(const QImage &image)
     return res;
 }
 
-QVector<QPoint> avoirLigneAngle(const QVector<QPoint> &ligne, int angle, int ecart)
+void avoirLigneAngle(const QVector<QPoint> &ligne, QVector<QPoint> &temp, int angle, int ecart)
 {
-    QVector<QPoint> res;
-
     for(int i=0; i<ligne.size();i++)
     {
         //Si la droite à le bon angle
         if(ligne[i].y() <= (angle+ecart) && ligne[i].y() >= (angle-ecart))
         {
-            res.push_back(ligne[i]);
+            temp.push_back(ligne[i]);
         }
     }
 
-    return res;
+}
+
+void tracerLigne(QImage& image, int rho, int theta, QRgb couleur)
+{
+    //2 points de la droite a tracer
+    QPoint p1, p2;
+
+    p1.setX(rho*cos(theta*M_PI/180));
+    p1.setY(rho*sin(theta*M_PI/180));
+
+    p2.setX(-p1.y()+p1.x());
+    p2.setY(p1.x()+p1.y());
+
+    tracerDroite(image,p1,p2,couleur);
+}
+
+void tracerDroite(QImage& image, QPoint p1, QPoint p2, QRgb couleur)
+{
+    double a=0.0;
+    double b=0.0;
+
+    if(p2.x()-p1.x() !=0)
+    {
+        a = ((double)p2.y()-(double)p1.y())/((double)p2.x()-(double)p1.x());
+        b = p1.y() - a*p1.x();
+        if (a>1.0 || a<-1.0)
+        {
+             for(int i=0;i<image.height();i++)
+                 if((i-b)/a > 0 && (i-b)/a < image.width())
+                     image.setPixel((i-b)/a,i,couleur);
+        }
+        else
+        {
+            for(int i=0;i<image.width();i++)
+                if(a*i+b > 0 && a*i+b < image.height())
+                    image.setPixel(i,a*i+b,couleur);
+        }
+    }
+    else
+    {
+        for(int i=0;i<image.height();i++)
+            image.setPixel(p1.x(),i,couleur);
+    }
+
 }
