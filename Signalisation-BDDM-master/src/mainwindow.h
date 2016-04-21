@@ -40,4 +40,15 @@ class MainWindow : public QMainWindow
 
 };
 
+hsv rgb2hsv(rgb in);
+rgb hsv2rgb(hsv in);
+QImage InvertBlackAndWhite(QImage RedRoadSigns);
+QImage Erosion(QImage RedRoadSigns);
+QImage Dilatation(QImage RedRoadSigns);
+QImage Squeletisation(QImage img);
+int nbPixelVoisins8Noir(const QImage &temoin, int x, int y);
+int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y);
+QImage binarisation_otsu(QImage image);
+QImage binarisationautre(QImage image);
+
 #endif // MAINWINDOW_H

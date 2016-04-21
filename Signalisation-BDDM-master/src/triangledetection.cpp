@@ -5,12 +5,15 @@ Triangledetection::Triangledetection()
 
 }
 
+
 QImage Triangledetection::detect(const QImage &source)
 {
-    QImage binary = edges(source);
+    QImage binary = detectionContour(extraireRouge(source));
     QImage detection = binary.convertToFormat(QImage::Format_RGB888);
 
-    QVector<QPoint> ligne = hough(source);
+    QVector<QPoint> ligne = hough(detection);
+    std::cout << "-> Nombre de ligne detecté : " << ligne.size() << std::endl;
+
     QVector<QPoint> ligne_angle0,ligne_angle60,ligne_angle120;
     QVector<Triangle> liste_triangle;
     QPoint inter1,inter2,inter3;
@@ -42,7 +45,7 @@ QImage Triangledetection::detect(const QImage &source)
                 l3 = distance(inter3,inter1);
 
                 //Si les distance sont les mêmes et que tous les points sont dans l'image => on a un triangle
-                if(l1 == l2 && l2 == l3 && estPointImage(detection,inter1) && estPointImage(detection,inter2) && estPointImage(detection,inter3))
+                if(l1 == l2 && l2 == l3 && l1 > 60 && l1 < 100 && estPointImage(detection,inter1) && estPointImage(detection,inter2) && estPointImage(detection,inter3))
                 {
                     Triangle a;
                     a.p1 = inter1;
@@ -54,10 +57,12 @@ QImage Triangledetection::detect(const QImage &source)
         }
     }
 
+
+    //Dessiner les triangles à l'écran
     for(int i=0;i<liste_triangle.size();i++)
         dessiner(detection,liste_triangle[i],qRgb(0,255,127));
 
-    std::cout<<"NB triangle : " << liste_triangle.size() << std::endl;
+    std::cout<<"-> Nombre de triangle detectés : " << liste_triangle.size() << std::endl;
 
     return detection;
 }

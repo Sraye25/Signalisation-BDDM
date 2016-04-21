@@ -231,6 +231,8 @@ void setPixel(QImage& image, QPoint point, QRgb couleur)
 
 bool estPointImage(const QImage& image, QPoint point)
 {
+    QColor blancC(255,255,255);
+    QRgb blanc =blancC.rgb();
     if(point.x()>=0 && point.x()<image.width() && point.y()>=0 && point.y()<image.height())
     {
         return true;
@@ -294,4 +296,53 @@ int distance(QPoint p1, QPoint p2)
     QPoint res = p1 - p2;
     int ret = sqrt(res.x()*res.x()+res.y()*res.y());
     return ret;
+}
+
+QImage extraireRouge(QImage const& _image)
+{
+    QImage res(_image);
+    QColor color;
+
+    for ( int row = 0; row < _image.height(); row++ )
+    {
+        for ( int col = 0; col < _image.width(); col++ )
+        {
+            color.setRgb(_image.pixel(col,row));
+            int red = color.red();
+            int green = color.green();
+            int blue = color.blue();
+
+            if (red > 70 && green < 60 && blue < 70) res.setPixel(col, row, qRgb(255,255,255));
+            else res.setPixel(col, row, qRgb(0,0,0));
+        }
+    }
+
+    return res;
+}
+
+
+QImage detectionContour(QImage const& _image)
+{
+    QImage res = _image;
+    QColor noirC(0,0,0);
+    QRgb noir = noirC.rgb();
+    QColor blancC(255,255,255);
+    QRgb blanc =blancC.rgb();
+
+    //Pour tt les pixels
+    for(int i=0; i<_image.width(); i++)
+    {
+        for(int j=0; j<_image.height();j++)
+        {
+            if(_image.pixel(i,j)!=noir && nbPixelVoisins8Noir(_image,i,j)!=0) //Si le pixel est blanc et a des voisin noirs
+            {
+                res.setPixel(QPoint(i,j),blanc);
+            }
+            else
+            {
+                res.setPixel(QPoint(i,j),noir);
+            }
+        }
+    }
+    return res;
 }

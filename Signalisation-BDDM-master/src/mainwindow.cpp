@@ -11,19 +11,6 @@
     #include <sys/types.h>
 #endif
 
-static hsv rgb2hsv(rgb in);
-static rgb hsv2rgb(hsv in);
-static QImage InvertBlackAndWhite(QImage RedRoadSigns);
-static QImage Erosion(QImage RedRoadSigns);
-static QImage Dilatation(QImage RedRoadSigns);
-static QImage Squeletisation(QImage img);
-static int nbPixelVoisins8Noir(QImage temoin, int x, int y);
-static int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y);
-static QImage binarisation_otsu(QImage image);
-static QImage binarisationautre(QImage image);
-//static QImage binarisation_par_seuillage_automatique(QImage image);
-//static QImage detectionContour(QImage temoin);
-
 /******************************************************************************
  ** Draw a pixel at a given position (x,y) with a given color
 ******************************************************************************/
@@ -240,7 +227,7 @@ void MainWindow::on_pushButton_2_pressed()
     ///TRIANGLES
 
     Triangledetection tri;
-    QImage ligneImage = tri.detect(RedRoadSigns);
+    QImage ligneImage = tri.detect(image);
 
     ui->label_5->setPixmap(QPixmap::fromImage(ligneImage));
     ui->label_5->setScaledContents(true);
@@ -739,7 +726,7 @@ int nbTransitionVoisinBlancNoir(QImage temoin, int x, int y)
 }
 
 //==========================================================================================================
-int nbPixelVoisins8Noir(QImage temoin, int x, int y)
+int nbPixelVoisins8Noir(QImage const& temoin, int x, int y)
 {
     QColor noirC(0,0,0);
     QRgb noir = noirC.rgb();

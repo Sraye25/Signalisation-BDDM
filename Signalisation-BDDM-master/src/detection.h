@@ -9,6 +9,8 @@
 #include <QPoint>
 #include <iostream>
 
+#include "mainwindow.h"
+
 //Avoir les contours
 QImage edges(const QImage &source);
 
@@ -42,5 +44,12 @@ void RhoThetaVersAB(QPoint rhoTheta, double &a, double &b);
 
 //distance euclidienne entre 2 points
 int distance(QPoint p1, QPoint p2);
+
+//Extraire la couleur rouge
+QImage extraireRouge(QImage const& _image);
+
+//Detecteur de contours d'image binaire
+QImage detectionContour(QImage const& _image);
+
 
 #endif // DETECTION_H
