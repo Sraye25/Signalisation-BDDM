@@ -7,10 +7,6 @@
 #include <QVBoxLayout>
 #include <iostream>
 
-void ajouterImageAMenuDeroulant();
-void effacerMenuDeroulant();
-
-
 class MenuDeroulant
 {
     public:

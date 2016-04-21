@@ -21,9 +21,9 @@ QImage edges(const QImage &source)
   Ly[1][0] = +0;  Ly[1][1] = +0;  Ly[1][2] = +0;
   Ly[2][0] = -1;  Ly[2][1] = -2;  Ly[2][2] = -1;
 
-  for(unsigned int x = 0; x < source.width(); x++)
+  for(int x = 0; x < source.width(); x++)
   {
-    for(unsigned int y = 0; y < source.height(); y++)
+    for(int y = 0; y < source.height(); y++)
     {
       double new_x = 0.0, new_y = 0.0;
 
@@ -231,8 +231,6 @@ void setPixel(QImage& image, QPoint point, QRgb couleur)
 
 bool estPointImage(const QImage& image, QPoint point)
 {
-    QColor blancC(255,255,255);
-    QRgb blanc =blancC.rgb();
     if(point.x()>=0 && point.x()<image.width() && point.y()>=0 && point.y()<image.height())
     {
         return true;

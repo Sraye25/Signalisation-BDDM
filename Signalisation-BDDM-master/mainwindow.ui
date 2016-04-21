@@ -98,7 +98,7 @@
       <x>839</x>
       <y>10</y>
       <width>120</width>
-      <height>579</height>
+      <height>580</height>
      </rect>
     </property>
     <property name="contextMenuPolicy">
@@ -125,7 +125,7 @@
        <x>0</x>
        <y>0</y>
        <width>105</width>
-       <height>577</height>
+       <height>578</height>
       </rect>
      </property>
      <property name="contextMenuPolicy">
@@ -201,15 +201,62 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>350</y>
-      <width>291</width>
-      <height>221</height>
+      <x>20</x>
+      <y>360</y>
+      <width>231</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="text">
      <string>Ligne detection</string>
     </property>
+   </widget>
+   <widget class="QScrollArea" name="scrollArea_3">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>10</y>
+      <width>120</width>
+      <height>580</height>
+     </rect>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::PreventContextMenu</enum>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOn</enum>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignHCenter|Qt::AlignTop</set>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents_3">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>105</width>
+       <height>578</height>
+      </rect>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>-1</y>
+        <width>101</width>
+        <height>581</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetFixedSize</enum>
+       </property>
+      </layout>
+     </widget>
+    </widget>
    </widget>
   </widget>
  </widget>

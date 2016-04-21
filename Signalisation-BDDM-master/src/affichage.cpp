@@ -47,6 +47,5 @@ int MenuDeroulant::tailleImageCumule() const
 {
     int taille = 0;
     for(int i=0; i<m_listeImage.size();i++) taille += (m_listeImage[i]->pixmap()->height()+5);
-    std::cout << "Taaaaaaaaaaaaaille : " << taille << std::endl;
     return taille;
 }

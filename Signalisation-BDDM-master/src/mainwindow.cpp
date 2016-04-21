@@ -102,6 +102,7 @@ void MainWindow::on_pushButton_2_pressed()
     QImage RedRoadSigns = ui->label->pixmap()->toImage();
     MenuDeroulant menuImage(ui->verticalLayout,ui->scrollAreaWidgetContents);
     MenuDeroulant menuResultat(ui->verticalLayout_2,ui->scrollAreaWidgetContents_2);
+    MenuDeroulant menuTriangle(ui->verticalLayout_3,ui->scrollAreaWidgetContents_3);
 
     // EGALISATION TEST //
     int histogram[255];
@@ -212,15 +213,6 @@ void MainWindow::on_pushButton_2_pressed()
     ui->label_2->setPixmap(QPixmap::fromImage(RedRoadSigns));
     ui->label_2->setScaledContents(true);
 
-
-    /* Erosion then Dilatation -> Ouverture (to take off some noise) */
-/*    RedRoadSigns = Erosion(RedRoadSigns);
-    RedRoadSigns = Dilatation(RedRoadSigns);
-    //Skeletonisation
-    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);
-    RedRoadSigns = Squeletisation(RedRoadSigns);
-    RedRoadSigns = InvertBlackAndWhite(RedRoadSigns);*/
-
     ui->label_3->setPixmap(QPixmap::fromImage(RedRoadSigns));
     ui->label_3->setScaledContents(true);
 
@@ -228,9 +220,15 @@ void MainWindow::on_pushButton_2_pressed()
 
     Triangledetection tri;
     QImage ligneImage = tri.detect(image);
+    QVector<QImage> liste_triangle = tri.avoirImageTriangle(image);
+
+    for(int i=0;i<liste_triangle.size();i++)
+        menuTriangle.ajouterImage(liste_triangle[i].scaled(100,100,Qt::KeepAspectRatio));
 
     ui->label_5->setPixmap(QPixmap::fromImage(ligneImage));
     ui->label_5->setScaledContents(true);
+
+    ///Fin triangle
 
     // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;

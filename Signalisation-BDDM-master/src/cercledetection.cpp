@@ -31,19 +31,19 @@ QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, uns
     /* instantiate Hough-space for circles of radius i */
     Image &hough = houghs[i - min_r];
     hough.resize(binary.width());
-    for(unsigned int x = 0; x < hough.size(); x++)
+    for(int x = 0; x < hough.size(); x++)
     {
       hough[x].resize(binary.height());
-      for(unsigned int y = 0; y < hough[x].size(); y++)
+      for(int y = 0; y < hough[x].size(); y++)
       {
         hough[x][y] = 0;
       }
     }
 
     /* find all the edges */
-    for(unsigned int x = 0; x < binary.width(); x++)
+    for(int x = 0; x < binary.width(); x++)
     {
-      for(unsigned int y = 0; y < binary.height(); y++)
+      for(int y = 0; y < binary.height(); y++)
       {
         /* edge! */
         if(binary.pixelIndex(x, y) == 1)
@@ -56,9 +56,9 @@ QImage HoughCircleDetector::detect(const QImage &source, unsigned int min_r, uns
     /* loop through all the Hough-space images, searching for bright spots, which
     indicate the center of a circle, then draw circles in image-space */
     unsigned int threshold = 4.9 * i;
-    for(unsigned int x = 0; x < hough.size(); x++)
+    for(int x = 0; x < hough.size(); x++)
     {
-      for(unsigned int y = 0; y < hough[x].size(); y++)
+      for(int y = 0; y < hough[x].size(); y++)
       {
         if(hough[x][y] > threshold)
         {
