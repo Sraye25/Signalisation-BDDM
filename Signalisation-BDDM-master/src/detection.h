@@ -48,8 +48,14 @@ int distance(QPoint p1, QPoint p2);
 //Extraire la couleur rouge
 QImage extraireRouge(QImage const& _image);
 
+//Egalisation d'histogramme
+QImage egalisationHistogramme(QImage const& _image);
+
 //Detecteur de contours d'image binaire
 QImage detectionContour(QImage const& _image);
+
+//Binarisation panneau
+QImage binarisationPanneau(QImage const& _image);
 
 
 #endif // DETECTION_H

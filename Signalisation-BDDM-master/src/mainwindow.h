@@ -5,6 +5,16 @@
 #include <QtWidgets>
 #include "affichage.h"
 #include "triangledetection.h"
+#include "cercledetection.h"
+#include "indexationrecherche.h"
+#include "filesbddm.h"
+#include "ui_mainwindow.h"
+#include <iostream>
+
+#ifndef WIN32
+    #include <sys/types.h>
+#endif
+
 
 namespace Ui {class MainWindow;}
 
@@ -31,9 +41,9 @@ class MainWindow : public QMainWindow
         ~MainWindow();
 
     private slots:
-        void on_pushButton_pressed();
 
-        void on_pushButton_2_pressed();
+        void ouvrirFichier();
+        void extrairePanneauxRouges();
 
     private:
         Ui::MainWindow *ui;

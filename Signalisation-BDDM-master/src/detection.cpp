@@ -318,6 +318,79 @@ QImage extraireRouge(QImage const& _image)
     return res;
 }
 
+QImage egalisationHistogramme(QImage const& _image)
+{
+    QImage res = _image;
+
+    int histogram[255];
+    for(int i = 0; i < 255; i++) histogram[i] = 0;
+
+    // calculate the no of pixels for each intensity values
+    for ( int row = 0; row < _image.height(); row++ ) {
+        for ( int col = 0; col < _image.width(); col++ )
+        {
+            QColor clrCurrent( _image.pixel( col, row ) );
+
+            int red = clrCurrent.red();
+            int green = clrCurrent.green();
+            int blue = clrCurrent.blue();
+
+            rgb test;
+            test.r=red;
+            test.g=green;
+            test.b=blue;
+            hsv testhsv=rgb2hsv(test);
+
+            histogram[(int)(testhsv.v)]++;
+        }
+    }
+
+    // Caluculate the size of image
+    int size =  _image.height() * _image.width();
+    float alpha = 255.0/size;
+
+    // Calculate the probability of each intensity
+    float PrRk[255];
+    for(int i = 0; i < 255; i++) PrRk[i] = (double)histogram[i] / size;
+
+    // Generate cumulative frequency histogram
+    int cumhistogram[255];
+    cumhistogram[0] = histogram[0];
+
+    for(int i = 1; i < 255; i++) cumhistogram[i] = histogram[i] + cumhistogram[i-1];
+
+    // Scale the histogram
+    int Sk[255];
+    for(int i = 0; i < 255; i++) Sk[i] = (int)((double)cumhistogram[i] * alpha);
+
+    // Generate the equlized histogram
+    float PsSk[255];
+    for(int i = 0; i < 255; i++) PsSk[i] = 0;
+    for(int i = 0; i < 255; i++) PsSk[Sk[i]] += PrRk[i];
+
+    //Calculate final image
+    for ( int row = 0; row < _image.height(); row++ ) {
+        for ( int col = 0; col < _image.width(); col++ )
+        {
+            QColor clrCurrent( _image.pixel( col, row ) );
+
+            int red = clrCurrent.red();
+            int green = clrCurrent.green();
+            int blue = clrCurrent.blue();
+
+            rgb test;
+            test.r=red;
+            test.g=green;
+            test.b=blue;
+            hsv testhsv=rgb2hsv(test);
+            testhsv.v=Sk[(int)testhsv.v];
+            rgb testrgb=hsv2rgb(testhsv);
+            res.setPixel(col, row, qRgb(testrgb.r,testrgb.g,testrgb.b));
+        }
+    }
+
+    return res;
+}
 
 QImage detectionContour(QImage const& _image)
 {
@@ -343,4 +416,22 @@ QImage detectionContour(QImage const& _image)
         }
     }
     return res;
+}
+
+QImage binarisationPanneau(QImage const& _image)
+{
+    QImage BlueRoadSigns = _image;
+
+    // Scale the image to compare it to database
+    BlueRoadSigns = BlueRoadSigns.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+    //Binarise the image to apply skeletonisation
+    BlueRoadSigns = binarisation_otsu(BlueRoadSigns);
+
+    //Erosion then Dilatation -> Ouverture (to take off some noise)
+    BlueRoadSigns = Erosion(BlueRoadSigns);
+    BlueRoadSigns = Dilatation(BlueRoadSigns);
+    //Skeletonisation
+    BlueRoadSigns = Squeletisation(BlueRoadSigns);
+
+    return BlueRoadSigns;
 }

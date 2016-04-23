@@ -3,6 +3,7 @@
 
 #include <QImage>
 #include <QVector>
+#include <dirent.h>
 
 #include "detection.h"
 
@@ -15,7 +16,11 @@ typedef struct {
     double radius;
 } xyr;
 
-QImage edges(const QImage &source);
+void draw_inside_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color);
+void accum_circle(Image &image, const QPoint &position, unsigned int radius);
+void accum_pixel(Image &image, const QPoint &position);
+void draw_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color);
+void draw_pixel(QImage &image, const QPoint &position, const QColor &color);
 
 class HoughCircleDetector
 {
@@ -24,20 +29,18 @@ class HoughCircleDetector
         HoughCircleDetector() {}
         ~HoughCircleDetector() {}
 
-        QImage detect(const QImage &source, unsigned int min_r, unsigned int max_r);
+        QImage detect(const QImage &source, const QImage &imageBase, unsigned int min_r, unsigned int max_r);
 
-        QVector<xyr> getListXyi();
+        QVector<xyr> getListXyi() const;
+        void filtrerXYI();
+
+        QVector<QImage> avoirCercleReconnu() const;
+        QVector<QImage> panneauxReconnu() const;
 
     private:
 
-        void accum_circle(Image &image, const QPoint &position, unsigned int radius);
-        void accum_pixel(Image &image, const QPoint &position);
-
-        void draw_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color);
-        void draw_pixel(QImage &image, const QPoint &position, const QColor &color);
-
-
         QVector<xyr> list_xyi;
+        QVector<QImage> liste_cercleReconnu;
 };
 
 

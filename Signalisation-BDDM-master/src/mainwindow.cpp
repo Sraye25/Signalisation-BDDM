@@ -1,76 +1,11 @@
 #include "mainwindow.h"
-#include "cercledetection.h"
-#include "indexationrecherche.h"
-#include "filesbddm.h"
-#include "ui_mainwindow.h"
-#include <iostream>
-
-#include <dirent.h>
-
-#ifndef WIN32
-    #include <sys/types.h>
-#endif
-
-/******************************************************************************
- ** Draw a pixel at a given position (x,y) with a given color
-******************************************************************************/
-void draw_pixel(QImage &image, const QPoint &position, const QColor &color)
-{
-    /* bounds checking */
-    if(position.x() < 0 || position.x() >= image.width() || position.y() < 0 || position.y() >= image.height())
-    {
-        return;
-    }
-
-    image.setPixel(position, color.rgb());
-}
-
-/*****************************************************************************
- ** Draw inside a circle with a given picture, a given color, a given radius and a given position
- ******************************************************************************/
-void draw_inside_circle(QImage &image, const QPoint &position, unsigned int radius, const QColor &color)
-{
-    for ( int r = image.height()/2; r < image.height(); r++ )
-    {
-        int f = 1 - radius;
-        int ddF_x = 1;
-        int ddF_y = -2 * radius;
-        int x = 0;
-        int y = r;
-
-        draw_pixel(image, QPoint(position.x(), position.y() + radius), color);
-        draw_pixel(image, QPoint(position.x(), position.y() - radius), color);
-        draw_pixel(image, QPoint(position.x() + radius, position.y()), color);
-        draw_pixel(image, QPoint(position.x() - radius, position.y()), color);
-
-        while(x < y)
-        {
-            if(f >= 0)
-            {
-                y--;
-                ddF_y += 2;
-                f += ddF_y;
-            }
-
-            x++;
-            ddF_x += 2;
-            f += ddF_x;
-
-            draw_pixel(image, QPoint(position.x() + x, position.y() + y), color);
-            draw_pixel(image, QPoint(position.x() - x, position.y() + y), color);
-            draw_pixel(image, QPoint(position.x() + x, position.y() - y), color);
-            draw_pixel(image, QPoint(position.x() - x, position.y() - y), color);
-            draw_pixel(image, QPoint(position.x() + y, position.y() + x), color);
-            draw_pixel(image, QPoint(position.x() - y, position.y() + x), color);
-            draw_pixel(image, QPoint(position.x() + y, position.y() - x), color);
-            draw_pixel(image, QPoint(position.x() - y, position.y() - x), color);
-        }
-    }
-}
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    QObject::connect(ui->actionOuvrir,SIGNAL(triggered()),this,SLOT(ouvrirFichier()));
+    QObject::connect(ui->actionPanneaux_Rouges,SIGNAL(triggered()),this,SLOT(extrairePanneauxRouges()));
 }
 
 MainWindow::~MainWindow()
@@ -79,370 +14,74 @@ MainWindow::~MainWindow()
 }
 
 /*****************************************************************************
- ** On pressed button : load Image
+ ** load Image
  ****************************************************************************/
-void MainWindow::on_pushButton_pressed()
+void MainWindow::ouvrirFichier()
 {
     QString fname = QFileDialog::getOpenFileName(this, "Open", qApp->applicationDirPath(), "Images (*.jpg *.bmp *.tif *.png)");
     if(!QFile(fname).exists())
         return;
 
     QImage image(fname);
-    ui->label->setPixmap(QPixmap::fromImage(image));
-    ui->label->setScaledContents(true);
+    ui->image_base->setPixmap(QPixmap::fromImage(image));
+    ui->image_base->setScaledContents(true);
 }
 
 /*****************************************************************************
  ** Convert image into HSV space to egalize hitograms of V-value to increase contrast to have a better recognition
  ** On pressed :
  ******************************************************************************/
-void MainWindow::on_pushButton_2_pressed()
+void MainWindow::extrairePanneauxRouges()
 {
-    QImage image = ui->label->pixmap()->toImage(); if(image.isNull()) return;
-    QImage RedRoadSigns = ui->label->pixmap()->toImage();
-    MenuDeroulant menuImage(ui->verticalLayout,ui->scrollAreaWidgetContents);
-    MenuDeroulant menuResultat(ui->verticalLayout_2,ui->scrollAreaWidgetContents_2);
-    MenuDeroulant menuTriangle(ui->verticalLayout_3,ui->scrollAreaWidgetContents_3);
+    QImage image = ui->image_base->pixmap()->toImage(); if(image.isNull()) return;
+    QImage RedRoadSigns = image;
+    MenuDeroulant menuImage(ui->verticalLayout_cercle,ui->scrollAreaWidgetContents_cercle);
+    MenuDeroulant menuResultat(ui->verticalLayout_cercle_resulat,ui->scrollAreaWidgetContents_cercle_resultat);
+    MenuDeroulant menuTriangle(ui->verticalLayout_triangle,ui->scrollAreaWidgetContents_triangle);
 
-    // EGALISATION TEST //
-    int histogram[255];
-    for(int i = 0; i < 255; i++)
-    {
-        histogram[i] = 0;
-    }
+    //Egalisation d'histogramme
+    RedRoadSigns = egalisationHistogramme(RedRoadSigns);
 
-    // calculate the no of pixels for each intensity values
-    for ( int row = 0; row < RedRoadSigns.height(); row++ ) {
-        for ( int col = 0; col < RedRoadSigns.width(); col++ )
-        {
-            QColor clrCurrent( RedRoadSigns.pixel( col, row ) );
+    //Extraire couleur rouge
+    RedRoadSigns = extraireRouge(RedRoadSigns);
 
-            int red = clrCurrent.red();
-            int green = clrCurrent.green();
-            int blue = clrCurrent.blue();
+    //Affichage de l'image où le rouge est extrait
+    ui->image_rouge->setPixmap(QPixmap::fromImage(RedRoadSigns));
+    ui->image_rouge->setScaledContents(true);
 
-
-            rgb test;
-            test.r=red;
-            test.g=green;
-            test.b=blue;
-            hsv testhsv=rgb2hsv(test);
-
-            histogram[(int)(testhsv.v)]++;
-
-        }
-    }
-
-    // Caluculate the size of image
-    int size =  RedRoadSigns.height() * RedRoadSigns.width();
-    float alpha = 255.0/size;
-
-    // Calculate the probability of each intensity
-    float PrRk[255];
-    for(int i = 0; i < 255; i++)
-    {
-        PrRk[i] = (double)histogram[i] / size;
-    }
-
-    // Generate cumulative frequency histogram
-    int cumhistogram[255];
-    cumhistogram[0] = histogram[0];
-
-    for(int i = 1; i < 255; i++)
-    {
-        cumhistogram[i] = histogram[i] + cumhistogram[i-1];
-    }
-
-    // Scale the histogram
-    int Sk[255];
-    for(int i = 0; i < 255; i++)
-    {
-        Sk[i] = (int)((double)cumhistogram[i] * alpha);
-    }
-
-    // Generate the equlized histogram
-    float PsSk[255];
-    for(int i = 0; i < 255; i++)
-    {
-        PsSk[i] = 0;
-    }
-
-    for(int i = 0; i < 255; i++)
-    {
-        PsSk[Sk[i]] += PrRk[i];
-    }
-
-    //Calculate final image
-    for ( int row = 0; row < RedRoadSigns.height(); row++ ) {
-        for ( int col = 0; col < RedRoadSigns.width(); col++ )
-        {
-            QColor clrCurrent( RedRoadSigns.pixel( col, row ) );
-
-            int red = clrCurrent.red();
-            int green = clrCurrent.green();
-            int blue = clrCurrent.blue();
-
-
-            rgb test;
-            test.r=red;
-            test.g=green;
-            test.b=blue;
-            hsv testhsv=rgb2hsv(test);
-            testhsv.v=Sk[(int)testhsv.v];
-            rgb testrgb=hsv2rgb(testhsv);
-            RedRoadSigns.setPixel(col, row, qRgb(testrgb.r,testrgb.g,testrgb.b));
-        }
-    }
-
-    for ( int row = 0; row < RedRoadSigns.height(); row++ ) {
-        for ( int col = 0; col < RedRoadSigns.width(); col++ )
-        {
-            QColor clrCurrent( RedRoadSigns.pixel( col, row ) );
-
-            int red = clrCurrent.red();
-            int green = clrCurrent.green();
-            int blue = clrCurrent.blue();
-
-            if (red >70 && green<60 && blue<70) {
-                RedRoadSigns.setPixel(col, row, qRgb(255,255,255));
-            }
-            else RedRoadSigns.setPixel(col, row, qRgb(0,0,0));
-        }
-    }
-
-    ui->label_2->setPixmap(QPixmap::fromImage(RedRoadSigns));
-    ui->label_2->setScaledContents(true);
-
-    ui->label_3->setPixmap(QPixmap::fromImage(RedRoadSigns));
-    ui->label_3->setScaledContents(true);
-
-    ///TRIANGLES
+    /// --------------- DETECTION TRIANGLES
 
     Triangledetection tri;
-    QImage ligneImage = tri.detect(image);
+    QImage ligneImage = tri.detect(RedRoadSigns);
     QVector<QImage> liste_triangle = tri.avoirImageTriangle(image);
 
     for(int i=0;i<liste_triangle.size();i++)
         menuTriangle.ajouterImage(liste_triangle[i].scaled(100,100,Qt::KeepAspectRatio));
 
-    ui->label_5->setPixmap(QPixmap::fromImage(ligneImage));
-    ui->label_5->setScaledContents(true);
+    ui->image_triangle->setPixmap(QPixmap::fromImage(ligneImage));
+    ui->image_triangle->setScaledContents(true);
 
-    ///Fin triangle
+    /// --------------- DETECTION CERCLES
 
-    // Tracer des cercles */
     unsigned int min_r = 0, max_r = 0;
 
     min_r = 10;
     max_r = 40;
 
     HoughCircleDetector hcd;
-    QImage resultRedRoadSigns = hcd.detect(RedRoadSigns, min_r, max_r);
+    QImage resultRedRoadSigns = hcd.detect(RedRoadSigns, image, min_r, max_r);
 
-    ui->label_4->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
-    ui->label_4->setScaledContents(true);
+    ui->image_cercle->setPixmap(QPixmap::fromImage(resultRedRoadSigns));
+    ui->image_cercle->setScaledContents(true);
 
-    QVector<xyr> list_xyi1 = hcd.getListXyi();
-    QVector<xyr> list_xyi;
+    QVector<QImage> liste_cercle = hcd.avoirCercleReconnu();
+    for(int i=0;i<liste_cercle.size();i++)
+        menuImage.ajouterImage(liste_cercle[i].scaled(100,100,Qt::KeepAspectRatio));
 
-    list_xyi.clear();
-
-    if(!list_xyi1.empty())
-    {
-        list_xyi.push_back(list_xyi1[0]);
-        for(int i=0; i< list_xyi1.size(); i++)
-        {
-            bool add = true;
-            for(int j=0; j< list_xyi.size(); j++)
-            {
-                if ( (list_xyi[j].x < list_xyi1[i].x + list_xyi1[i].radius) && (list_xyi[j].x > list_xyi1[i].x - list_xyi1[i].radius) && (list_xyi[j].y < list_xyi1[i].y + list_xyi1[i].radius) && (list_xyi[j].y > list_xyi1[i].y - list_xyi1[i].radius) ) /// If there is another circle which center is inside a founded circle, don't add it
-                {
-                    add = false;
-                }
-            }
-            if (add == true) {
-                list_xyi.push_back(list_xyi1[i]);
-            }
-        }
-    }
-
-
-    // Count the number of Red Circle Road Signs In Database
-    DIR *pdir = NULL;
-
-    pdir = opendir ("./data/CirclesRedRoadSigns/");
-
-    FilesBDDM fbddm;
-    int nbRedRoadSignsInDatabase = fbddm.compterFichier(pdir);
-    std::cout << nbRedRoadSignsInDatabase;
-    std::cout << " Red Circles Road Signs In Database" << std::endl;
-    closedir (pdir);
-    long TRessemblances[nbRedRoadSignsInDatabase+2][2]; //Tableau des ressemblances avec la base de données
-
-    for(int k=0; k<nbRedRoadSignsInDatabase+2; k++)
-    {
-        TRessemblances[k][0] = -1;
-        TRessemblances[k][1] = -1;
-    }
-
-    for(int i=0; i< list_xyi.size(); i++)
-    {
-        QImage BlueRoadSigns = QImage(2*(list_xyi[i].radius), 2*(list_xyi[i].radius), QImage::Format_RGB32);
-
-        for ( int row = 0; row < 2*list_xyi[i].radius; row++ )
-            for ( int col = 0; col < 2*list_xyi[i].radius; col++ )
-            {
-                QColor clrCurrent( image.pixel( col+list_xyi[i].x-list_xyi[i].radius, row+list_xyi[i].y-list_xyi[i].radius ) );
-
-                int red = clrCurrent.red();
-                int green = clrCurrent.green();
-                int blue = clrCurrent.blue();
-
-                BlueRoadSigns.setPixel(col, row, qRgb(red,green,blue));
-            }
-
-        QPoint center (list_xyi[i].radius,list_xyi[i].radius);
-        draw_inside_circle(BlueRoadSigns, center, list_xyi[i].radius, QColor(255,255,255,0));
-
-
-        IndexationRecherche Indexationrech;
-        std::string adddossierrecherche = Indexationrech.rechercherbondossierrecherche(BlueRoadSigns);
-        std::cout << "Nb de composantes connexes te : ";
-        std::cout << adddossierrecherche << std::endl;
-
-
-        menuImage.ajouterImage(BlueRoadSigns.scaled(100,100,Qt::KeepAspectRatio));
-
-        // Scale the image to compare it to database
-        BlueRoadSigns = BlueRoadSigns.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-        //Binarise the image to apply skeletonisation
-        BlueRoadSigns = binarisation_otsu(BlueRoadSigns);
-        /* Erosion then Dilatation -> Ouverture (to take off some noise) */
-        BlueRoadSigns = Erosion(BlueRoadSigns);
-        BlueRoadSigns = Dilatation(BlueRoadSigns);
-        //Skeletonisation
-        BlueRoadSigns = Squeletisation(BlueRoadSigns);
-
-        // Compare the sign with all in the database to find the most-look-loke sign
-        std::cout << "Recherche des ressemblances" << std::endl;
-        int maxressemblance=0;
-
-        std::string chemin2 = "./data/CirclesRedRoadSigns/";
-        chemin2+=adddossierrecherche;
-
-        const char * charchemin = chemin2.c_str();
-
-        pdir = opendir (charchemin);
-
-        struct dirent *pent = NULL;
-        if (pdir == NULL) {
-            std::cout << "\nERROR! pdir could not be initialised correctly";
-            exit (3);
-        }
-        int fichiersparcourus = 0;
-        while (pent = readdir (pdir))
-        {
-            if (pent == NULL) {
-                std::cout << "\nERROR! pent could not be initialised correctly";
-                exit (3);
-            }
-            if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0) {
-
-                std::string chemin3 = "./data/CirclesRedRoadSigns/";
-                chemin3+=adddossierrecherche;
-
-                chemin3 += pent->d_name;
-                char* chaine = (char*)chemin3.c_str();
-                QImage CurrentImageDatabase(chaine);
-
-                std::cout << "Le fichier a bien été ouvert : ";
-                std::cout << pent->d_name << std::endl;
-
-                // Scale the image to compare it to database
-                CurrentImageDatabase = CurrentImageDatabase.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-                //Binarise the image to apply skeletonisation
-                CurrentImageDatabase = binarisationautre(CurrentImageDatabase);
-
-
-                //Comparaison des ressemblances
-                int ratio=0; //nb de pixels noirs squeletisés à comparer
-                int ressemblances=0; //nb de pixels noirs squeletisés correspondants
-
-                for ( int row = 0; row < BlueRoadSigns.width(); row++ ) {
-                    for ( int col = 0; col < BlueRoadSigns.height(); col++ ){
-                        QColor c( BlueRoadSigns.pixel( col, row ) );
-                        if (c.red()==0) { // Si le pixel est noir
-                            ratio++;
-                            QColor c2( CurrentImageDatabase.pixel( col, row ) );
-                            if (c2.red()==0) {
-                                ressemblances++;
-                            }
-                        }
-                    }
-                }
-
-                std::cout << "Le fichier a bien été ouvert 2 : ";
-                std::cout << pent->d_name << std::endl;
-
-                TRessemblances[fichiersparcourus][0]=telldir(pdir);
-                TRessemblances[fichiersparcourus][1]=ressemblances*1000/ratio;
-
-                std::cout << "no idea ";
-                std::cout << TRessemblances[fichiersparcourus][0];
-                std::cout << " no idea ";
-                std::cout << TRessemblances[fichiersparcourus][1];
-                std::cout << " no idea " << std::endl;
-
-                if (TRessemblances[fichiersparcourus][1]>TRessemblances[maxressemblance][1]) {
-                    maxressemblance = fichiersparcourus;
-                }
-
-                std::cout << maxressemblance << std::endl;
-            }
-            fichiersparcourus++;
-        }
-
-        DIR *pdir2 = NULL;
-
-        std::string chemin4 = "./data/CirclesRedRoadSigns/";
-        chemin4+=adddossierrecherche;
-        char* chaine1 = (char*)chemin4.c_str();
-
-        pdir2 = opendir (chaine1);
-
-        std::cout << "no idea ";
-        std::cout << maxressemblance;
-        std::cout << "no idea ";
-        std::cout << TRessemblances[maxressemblance][1];
-        std::cout << "no idea ";
-        std::cout << TRessemblances[maxressemblance][0];
-        std::cout << " no idea " << std::endl;
-
-        //A MODIFIER POUR AFFICHER PLUSIEURS PANNEAUX TROUVES
-        rewinddir(pdir2);
-        seekdir(pdir2, TRessemblances[maxressemblance-1][0]);
-
-
-        std::cout << " test " << std::endl;
-
-
-        std::string chemin = "./data/CirclesRedRoadSigns/";
-        chemin+=adddossierrecherche;
-        std::cout << " no idea 1" << std::endl;
-        std::cout << chemin << std::endl;
-        chemin += readdir(pdir2)->d_name;
-        char* chaine = (char*)chemin.c_str();
-
-        QImage imagetrouvee(chaine);
-        menuResultat.ajouterImage(imagetrouvee.scaled(100,100,Qt::KeepAspectRatio));
-
-        closedir (pdir2);
-        closedir (pdir);
-    }
+    QVector<QImage> liste_panneauTrouvee = hcd.panneauxReconnu();
+    for(int i=0;i<liste_panneauTrouvee.size();i++)
+        menuResultat.ajouterImage(liste_panneauTrouvee[i].scaled(100,100,Qt::KeepAspectRatio));
 }
-
-
-
 
 /******************************************************************************
  ** RGV to HSV

@@ -8,7 +8,8 @@ Triangledetection::Triangledetection() : liste_triangle()
 
 QImage Triangledetection::detect(const QImage &source)
 {
-    QImage binary = detectionContour(extraireRouge(source));
+    //QImage binary = detectionContour(extraireRouge(source));
+    QImage binary = detectionContour(source);
     QImage detection = binary.convertToFormat(QImage::Format_RGB888);
 
     QVector<QPoint> ligne = hough(detection);
