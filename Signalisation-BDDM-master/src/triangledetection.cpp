@@ -6,7 +6,7 @@ Triangledetection::Triangledetection() : liste_triangle()
 }
 
 
-QImage Triangledetection::detect(const QImage &source)
+QImage Triangledetection::detect(const QImage &source, const QImage &imageBase)
 {
     //QImage binary = detectionContour(extraireRouge(source));
     QImage binary = detectionContour(source);
@@ -18,6 +18,8 @@ QImage Triangledetection::detect(const QImage &source)
     QVector<QPoint> ligne_angle0,ligne_angle60,ligne_angle120;
     QPoint inter1,inter2,inter3;
     int l1,l2,l3;
+
+
 
     //Avoir les lignes avec des angles pouvant appartenir à un panneau (+ ou - 1°)
     avoirLigneAngle(ligne,ligne_angle0,90,1);
@@ -36,6 +38,7 @@ QImage Triangledetection::detect(const QImage &source)
         {
             for(int k=0;k<ligne_angle120.size();k++)
             {
+
                 inter1 = intersection(ligne_angle0[i],ligne_angle60[j]);
                 inter2 = intersection(ligne_angle60[j],ligne_angle120[k]);
                 inter3 = intersection(ligne_angle120[k],ligne_angle0[i]);
@@ -65,6 +68,43 @@ QImage Triangledetection::detect(const QImage &source)
     //Dessiner les triangles à l'écran
     for(int i=0;i<liste_triangle.size();i++)
         dessiner(detection,liste_triangle[i],qRgb(0,255,127));
+
+
+    //Generer les images avec les cercles reconnus
+    for(int i=0;i<liste_triangle.size();i++)
+    {
+        int minX = liste_triangle[i].p1.x();
+        int minY = liste_triangle[i].p1.y();
+        int maxX = liste_triangle[i].p1.x();
+        int maxY = liste_triangle[i].p1.y();
+        if (liste_triangle[i].p2.x()<minX) minX = liste_triangle[i].p2.x();
+        if (liste_triangle[i].p2.y()<minY) minY = liste_triangle[i].p2.y();
+        if (liste_triangle[i].p2.x()>maxX) maxX = liste_triangle[i].p2.x();
+        if (liste_triangle[i].p2.y()>maxY) maxY = liste_triangle[i].p2.y();
+        if (liste_triangle[i].p3.x()<minX) minX = liste_triangle[i].p3.x();
+        if (liste_triangle[i].p3.y()<minY) minY = liste_triangle[i].p3.y();
+        if (liste_triangle[i].p3.x()>maxX) maxX = liste_triangle[i].p3.x();
+        if (liste_triangle[i].p3.y()>maxY) maxY = liste_triangle[i].p3.y();
+
+
+        QImage BlueRoadSigns = QImage(maxX-minX, maxY-minY, QImage::Format_RGB32);
+
+        for(int row = 0;row<maxY-minY;row++)
+        {
+            for (int col=0;col<maxX-minX;col++)
+            {
+                QColor clrCurrent(imageBase.pixel(col+minX,row+minY));
+
+                int red = clrCurrent.red();
+                int green = clrCurrent.green();
+                int blue = clrCurrent.blue();
+
+                BlueRoadSigns.setPixel(col, row, qRgb(red,green,blue));
+            }
+        }
+
+        liste_TrianglesReconnu.push_back(BlueRoadSigns);
+    }
 
     std::cout<<"-> Nombre de triangle detectés : " << liste_triangle.size() << std::endl;
 
@@ -172,4 +212,123 @@ QRect boiteEnglobanteTriangle(const Triangle& t)
     if(t.p3.y() < hmin) hmin = t.p3.y();
 
     return QRect(QPoint(lmin,hmin),QPoint(lmax,hmax));
+}
+
+
+
+QVector<QImage> Triangledetection::panneauxReconnu() const
+{
+    QVector<QImage> res;
+
+
+
+    //Count the number of Red Circle Road Signs In Database
+    DIR *pdir = NULL;
+    pdir = opendir ("./data/TR/");
+    FilesBDDM fbddm;
+    int nbRedRoadSignsInDatabase = fbddm.compterFichier(pdir);
+    std::cout << nbRedRoadSignsInDatabase << " Red Circles Road Signs In Database" << std::endl;
+    closedir (pdir);
+
+    long TRessemblances[nbRedRoadSignsInDatabase+2][2]; //Tableau des ressemblances avec la base de données
+
+    for(int k=0; k<nbRedRoadSignsInDatabase+2; k++)
+    {
+        TRessemblances[k][0] = -1;
+        TRessemblances[k][1] = -1;
+    }
+
+
+    for(int i=0; i< liste_triangle.size(); i++)
+    {
+        QImage BlueRoadSigns = liste_TrianglesReconnu[i];
+
+        IndexationRecherche Indexationrech;
+        std::string adddossierrecherche = Indexationrech.rechercherbondossierrechercheTriangles(BlueRoadSigns);
+
+        //Binairisation du panneau
+        BlueRoadSigns = binarisationPanneau(BlueRoadSigns);
+
+        // Compare the sign with all in the database to find the most-look-loke sign
+        std::cout << "Recherche des ressemblances" << std::endl;
+        int maxressemblance=0;
+
+        std::string chemin2 = "./data/TR/" + adddossierrecherche;
+        pdir = opendir (chemin2.c_str());
+
+        struct dirent *pent = NULL;
+        if (pdir == NULL)
+        {
+            std::cout << "\nERROR! pdir could not be initialised correctly";
+            exit (3);
+        }
+        int fichiersparcourus = 0;
+
+        while (pent = readdir (pdir))
+        {
+            if (pent == NULL)
+            {
+                std::cout << "\nERROR! pent could not be initialised correctly";
+                exit (3);
+            }
+            if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0)
+            {
+                std::string chemin3 = "./data/TR/" + adddossierrecherche + pent->d_name;
+                QImage CurrentImageDatabase((char*)chemin3.c_str());
+
+                std::cout << "Le fichier a bien été ouvert : " << pent->d_name << std::endl;
+
+                // Scale the image to compare it to database
+                CurrentImageDatabase = CurrentImageDatabase.scaled(100,100,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+                //Binarise the image to apply skeletonisation
+                CurrentImageDatabase = binarisationautre(CurrentImageDatabase);
+
+                //Comparaison des ressemblances
+                int ratio=0; //nb de pixels noirs squeletisés à comparer
+                int ressemblances=0; //nb de pixels noirs squeletisés correspondants
+
+
+                for ( int row = 0; row < BlueRoadSigns.width(); row++ )
+                {
+                    for ( int col = 0; col < BlueRoadSigns.height(); col++ )
+                    {
+                        QColor c( BlueRoadSigns.pixel( col, row ) );
+                        if (c.red()==0)
+                        {
+                            // Si le pixel est noir
+                            ratio++;
+                            QColor c2( CurrentImageDatabase.pixel( col, row ) );
+                            if (c2.red()==0) ressemblances++;
+                        }
+                    }
+                }
+
+                TRessemblances[fichiersparcourus][0]=telldir(pdir);
+                TRessemblances[fichiersparcourus][1]=ressemblances*1000/ratio;
+
+                if (TRessemblances[fichiersparcourus][1]>TRessemblances[maxressemblance][1])
+                    maxressemblance = fichiersparcourus;
+            }
+            fichiersparcourus++;
+        }
+
+        std::cout << adddossierrecherche << std::endl;
+
+        DIR *pdir2 = NULL;
+        std::string chemin4 = "./data/TR/" + adddossierrecherche;
+        pdir2 = opendir ((char*)chemin4.c_str());
+
+        rewinddir(pdir2);
+        seekdir(pdir2, TRessemblances[maxressemblance-1][0]);
+
+        std::string chemin = "./data/TR/"+adddossierrecherche;
+        chemin += readdir(pdir2)->d_name;
+        res.push_back(QImage((char*)chemin.c_str()));
+
+        closedir(pdir2);
+        closedir(pdir);
+
+    }
+
+    return res;
 }

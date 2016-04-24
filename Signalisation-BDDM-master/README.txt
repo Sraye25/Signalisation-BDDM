@@ -11,16 +11,14 @@ DONE:
 -ajout d'images test
 -correction d'un bug faisant crasher l'app du au tableau non initialisé (et du coup tableau d'int était assigné à 'nan' oO??)
 -nouvelle binarisation pour les panneaux ce qui améliore grandement la reconnaissance
-création de fonctions afin d'ajouter les images dans la liste
+-création de fonctions afin d'ajouter les images dans la liste
 -indexation terminée pour les panneaux circulaires rouges
+-detection des panneaux triangulaires
+-indexation pour les panneaux triangulaires
+-nettoyage du code
 
 NEXT:
-->reconnaitre les formes (triangles, carrés)
-->afficher multiples détection
+->reconnaitre les carrés
 
 BUGS:
 ->Si on clique sur un bouton sans avoir chargé une image, fait planter le programme
-->Bug fonctions ajout image : plus d'une image fait planter le programme
-
-AUTRES:
-Osef les panneaux bleus pour le moment

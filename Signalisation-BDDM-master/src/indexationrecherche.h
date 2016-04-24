@@ -10,6 +10,7 @@ class IndexationRecherche
 public:
     QImage coloriage8connexe(QImage image, int x, int y);
     std::string rechercherbondossierrecherche(QImage image);
+    std::string rechercherbondossierrechercheTriangles(QImage image);
     int nombreComposante8ConnexeNoir(QImage image);
 };
 

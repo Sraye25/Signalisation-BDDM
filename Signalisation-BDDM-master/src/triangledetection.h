@@ -21,7 +21,7 @@ class Triangledetection
         Triangledetection();
 
         //detecter les triangles
-        QImage detect(const QImage &source);
+        QImage detect(const QImage &source, const QImage &imageBase);
 
         //avoir la liste des triangles
         QVector<Triangle> getListeTriangle() const;
@@ -29,12 +29,15 @@ class Triangledetection
         //avoir les images autour des triangle
         QVector<QImage> avoirImageTriangle(const QImage &source) const;
 
+        QVector<QImage> panneauxReconnu() const;
+
     private:
 
         //Supprimer les doublons dans le liste de triangle
         void supprimerDoublon();
 
         QVector<Triangle> liste_triangle;
+        QVector<QImage> liste_TrianglesReconnu;
 };
 
 //Dessiner un triangle dans une image

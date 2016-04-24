@@ -293,7 +293,7 @@ QVector<QImage> HoughCircleDetector::panneauxReconnu() const
 
     //Count the number of Red Circle Road Signs In Database
     DIR *pdir = NULL;
-    pdir = opendir ("./data/CirclesRedRoadSigns/");
+    pdir = opendir ("./data/CR/");
     FilesBDDM fbddm;
     int nbRedRoadSignsInDatabase = fbddm.compterFichier(pdir);
     std::cout << nbRedRoadSignsInDatabase << " Red Circles Road Signs In Database" << std::endl;
@@ -322,7 +322,7 @@ QVector<QImage> HoughCircleDetector::panneauxReconnu() const
         std::cout << "Recherche des ressemblances" << std::endl;
         int maxressemblance=0;
 
-        std::string chemin2 = "./data/CirclesRedRoadSigns/" + adddossierrecherche;
+        std::string chemin2 = "./data/CR/" + adddossierrecherche;
         pdir = opendir (chemin2.c_str());
 
         struct dirent *pent = NULL;
@@ -341,7 +341,7 @@ QVector<QImage> HoughCircleDetector::panneauxReconnu() const
             }
             if (strcmp(pent->d_name, ".") != 0 && strcmp(pent->d_name, "..") != 0)
             {
-                std::string chemin3 = "./data/CirclesRedRoadSigns/" + adddossierrecherche + pent->d_name;
+                std::string chemin3 = "./data/CR/" + adddossierrecherche + pent->d_name;
                 QImage CurrentImageDatabase((char*)chemin3.c_str());
 
                 std::cout << "Le fichier a bien été ouvert : " << pent->d_name << std::endl;
@@ -380,13 +380,13 @@ QVector<QImage> HoughCircleDetector::panneauxReconnu() const
         }
 
         DIR *pdir2 = NULL;
-        std::string chemin4 = "./data/CirclesRedRoadSigns/" + adddossierrecherche;
+        std::string chemin4 = "./data/CR/" + adddossierrecherche;
         pdir2 = opendir ((char*)chemin4.c_str());
 
         rewinddir(pdir2);
         seekdir(pdir2, TRessemblances[maxressemblance-1][0]);
 
-        std::string chemin = "./data/CirclesRedRoadSigns/"+adddossierrecherche;
+        std::string chemin = "./data/CR/"+adddossierrecherche;
 
         chemin += readdir(pdir2)->d_name;
         res.push_back(QImage((char*)chemin.c_str()));

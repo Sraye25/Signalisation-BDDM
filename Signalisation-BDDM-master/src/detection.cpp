@@ -106,7 +106,7 @@ QVector<QPoint> hough(const QImage &image)
     {
         for(int j=0;j<max_theta;j++)
         {
-            if(accumulateur[i][j]>=30) res.push_back(QPoint(i,j));
+            if(accumulateur[i][j]>=54) res.push_back(QPoint(i,j));
         }
     }
 

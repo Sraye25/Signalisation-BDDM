@@ -11,7 +11,7 @@
         ( std::ostringstream() << std::dec << x ) ).str()
 
 /*
- * Recherche la meilleure ressemblance du panneau avec les images tests
+ * Recherche la meilleure ressemblance du panneau circulaire rouge avec les images tests
  * et renvoie le dossier où chercher
  */
 std::string IndexationRecherche::rechercherbondossierrecherche(QImage image) {
@@ -166,6 +166,128 @@ std::string IndexationRecherche::rechercherbondossierrecherche(QImage image) {
         return chemin;
     }
 }
+
+
+
+/*
+ * Recherche la meilleure ressemblance du panneau triangulaire rouge avec les images tests
+ * et renvoie le dossier où chercher
+ */
+std::string IndexationRecherche::rechercherbondossierrechercheTriangles(QImage image) {
+
+    //COMPOSANTES CONNEXES ROUGES
+    int nbcomposantes8connexesrouges=0;
+    QImage nbcomposanteshuitconnexesrouges=image;
+    QImage nbcomposanteshuitconnexesnoires=image;
+    std::string chemin;
+
+
+
+    QColor color;
+
+    int row = image.height();
+    int col = image.width();
+    color.setRgb(image.pixel((int)(1/40)*col,row-(int)((1/40)*row)));
+    int red = color.red();
+    int green = color.green();
+    int blue = color.blue();
+    if (red > 70 && green < 100 && blue < 100)
+    {
+        chemin += "TR/";
+        return chemin;
+    }
+    else chemin += "T/";
+
+
+    for ( int row = 0; row <image.height(); row++ ) {
+        for ( int col = 0; col < image.width(); col++ ) {
+            QColor clrCurrent( image.pixel( col, row ) );
+            int red = clrCurrent.red();
+            int green = clrCurrent.green();
+            int blue = clrCurrent.blue();
+
+            if (red >150 && green<70 && blue<70) {
+                nbcomposanteshuitconnexesrouges.setPixel(col, row, qRgb(255,255,255));
+            }
+        else nbcomposanteshuitconnexesrouges.setPixel(col, row, qRgb(0,0,0));
+        }
+    }
+
+    for ( int row = 0; row <nbcomposanteshuitconnexesrouges.height(); row++ ) {
+        for ( int col = 0; col < nbcomposanteshuitconnexesrouges.width(); col++ ) {
+            QColor clrCurrent( nbcomposanteshuitconnexesrouges.pixel( col, row ) );
+            int red = clrCurrent.red();
+
+            if (red == 0) {
+                nbcomposanteshuitconnexesrouges=coloriage8connexe(nbcomposanteshuitconnexesrouges,row,col);
+                nbcomposantes8connexesrouges++;
+            }
+        }
+    }
+
+    if (nbcomposantes8connexesrouges==2) { //se place dans le chemin 2 composantes connexes rouges trouvées
+        chemin += SSTR(nbcomposantes8connexesrouges);
+        chemin+="r/";
+        std::cout << "Nombre de composantes 8-connexes rouges ";
+        std::cout << chemin << std::endl;
+        return chemin;
+    }
+    else if (nbcomposantes8connexesrouges==1) { //se place dans le chemin 1 composante connexe rouge trouvée
+        chemin += SSTR(nbcomposantes8connexesrouges);
+        chemin+="r/";
+        std::cout << "Nombre de composantes 8-connexes rouges ";
+        std::cout << chemin << std::endl;
+
+        // RECHERCHE COMPOSANTES CONNEXES NOIRES
+        int nbcomposantes8connexesnoires=0;
+        for ( int row = 0; row <image.height(); row++ ) {
+            for ( int col = 0; col < image.width(); col++ ) {
+                QColor clrCurrent( image.pixel( col, row ) );
+                int red = clrCurrent.red();
+                int green = clrCurrent.green();
+                int blue = clrCurrent.blue();
+
+                if (red <50 && green < 50 && blue <50) {
+                    nbcomposanteshuitconnexesnoires.setPixel(col, row, qRgb(0,0,0));
+                }
+                else nbcomposanteshuitconnexesnoires.setPixel(col, row, qRgb(255,255,255));
+            }
+        }
+
+        nbcomposantes8connexesnoires=nombreComposante8ConnexeNoir(nbcomposanteshuitconnexesnoires);
+
+        if (nbcomposantes8connexesnoires==1 || nbcomposantes8connexesnoires==2) { //se place dans le chemin 1 ou 2 composantes connexes noires trouvées
+            chemin += SSTR(nbcomposantes8connexesnoires);
+            chemin+="b/";
+            std::cout << "Nombre de composantes 8-connexes noires ";
+            std::cout << chemin << std::endl;
+            return chemin;
+        }
+        else if (nbcomposantes8connexesnoires==0) { //se place dans le chemin 0 composante connexe noires trouvées
+            chemin += SSTR(nbcomposantes8connexesnoires);
+            chemin+="b/";
+            std::cout << "Nombre de composantes 8-connexes noires ";
+            std::cout << chemin << std::endl;
+
+            return chemin;
+        }
+        else {
+            chemin+="hard/";
+            std::cout << "Nombre de composantes 8-connexes noires ";
+            std::cout << nbcomposantes8connexesnoires << std::endl;
+            return chemin;
+        }
+
+
+    }
+    else { //0 ou plus de 2 composantes connexes rouges -> panneau non trouvé
+        chemin+="0/";
+        std::cout << "Nombre de composantes 8-connexes rouges ";
+        std::cout << chemin << std::endl;
+        return chemin;
+    }
+}
+
 
 
 QImage IndexationRecherche::coloriage8connexe(QImage image, int x, int y) {

@@ -52,11 +52,15 @@ void MainWindow::extrairePanneauxRouges()
     /// --------------- DETECTION TRIANGLES
 
     Triangledetection tri;
-    QImage ligneImage = tri.detect(RedRoadSigns);
+    QImage ligneImage = tri.detect(RedRoadSigns,image);
     QVector<QImage> liste_triangle = tri.avoirImageTriangle(image);
 
     for(int i=0;i<liste_triangle.size();i++)
         menuTriangle.ajouterImage(liste_triangle[i].scaled(100,100,Qt::KeepAspectRatio));
+
+    QVector<QImage> liste_panneauTrouveeT = tri.panneauxReconnu();
+    for(int i=0;i<liste_panneauTrouveeT.size();i++)
+        menuResultat.ajouterImage(liste_panneauTrouveeT[i].scaled(100,100,Qt::KeepAspectRatio));
 
     ui->image_triangle->setPixmap(QPixmap::fromImage(ligneImage));
     ui->image_triangle->setScaledContents(true);
